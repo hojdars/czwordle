@@ -1,3 +1,6 @@
+use rand::Rng;
+
+use std::fs;
 use std::io;
 
 extern crate colored;
@@ -16,50 +19,38 @@ struct State {
     guesses: Vec<Guess>,
 }
 
-fn input_word() -> String {
-    let mut input = String::new();
-
-    loop {
-        match io::stdin().read_line(&mut input) {
-            Ok(_) => {
-                let letters = input.trim().chars().count();
-                if letters == 5 {
-                    break;
-                } else {
-                    println!(
-                        "Word needs to be 5 letters long! Your word was {} letters long!",
-                        letters
-                    );
-                    input.clear();
-                }
-            }
-            Err(_) => panic!("Cannot read a line, exit."),
-        }
-    }
-    input.trim().to_uppercase().to_owned()
+struct Dictionary {
+    wordlist: Vec<String>,
 }
 
-pub fn run() {
-    let mut state = setup();
+pub fn run(dictionary: &str) {
+    let (mut state, dict) = setup(dictionary);
 
-    guessing(&mut state);
+    guessing(&mut state, &dict);
 
     teardown(&state);
 }
 
-fn setup() -> State {
+fn setup(path_to_dict: &str) -> (State, Dictionary) {
     println!("Guess a word!");
 
-    State {
-        tries: 6,
-        word: String::from("tajne").to_uppercase(),
-        guesses: Vec::new(),
-    }
+    let dictionary = load_dictionary(path_to_dict);
+
+    let random_word = generate_random_word(&dictionary);
+
+    (
+        State {
+            tries: 6,
+            word: random_word.to_uppercase(),
+            guesses: Vec::new(),
+        },
+        dictionary,
+    )
 }
 
-fn guessing(state: &mut State) {
+fn guessing(state: &mut State, dictionary: &Dictionary) {
     for _ in 1..state.tries + 1 {
-        let guess_word = input_word();
+        let guess_word = input_word(dictionary);
 
         let guess = calculate_guess(&state.word, &guess_word);
         print_guess(&guess);
@@ -80,13 +71,71 @@ fn teardown(state: &State) {
     }
 
     if is_won {
-        println!("Gratz! {}", "You win!".green().bold());
+        println!("Yay! {}", "You win!".green().bold());
     } else {
         println!(
             "You lose! :( The word was: {}",
             state.word.to_string().red().bold()
         );
     }
+}
+
+fn load_dictionary(path: &str) -> Dictionary {
+    let contents = fs::read_to_string(path).expect("Something went wrong reading the file");
+    let mut results: Vec<String> = Vec::new();
+
+    for line in contents.lines() {
+        let word_it = line.split('/').next();
+        if let Some(string) = word_it {
+            let string_no_whitespace = string.trim();
+            if string_no_whitespace.chars().count() != 5 {
+                continue;
+            }
+
+            if string_no_whitespace.chars().next().unwrap().is_uppercase() {
+                continue;
+            }
+
+            results.push(string_no_whitespace.to_string());
+        }
+    }
+
+    Dictionary { wordlist: results }
+}
+
+fn generate_random_word(dict: &Dictionary) -> String {
+    let num: usize = rand::thread_rng().gen_range(0..dict.wordlist.len().try_into().unwrap());
+    dict.wordlist[num].clone()
+}
+
+fn input_word(dictionary: &Dictionary) -> String {
+    let mut input = String::new();
+
+    loop {
+        match io::stdin().read_line(&mut input) {
+            Ok(_) => {
+                let word = input.trim();
+                let letters = word.chars().count();
+                if letters != 5 {
+                    println!(
+                        "Word needs to be 5 letters long! Your word was {} letters long!",
+                        letters
+                    );
+                    input.clear();
+                    continue;
+                }
+                if !dictionary.wordlist.contains(&word.to_string()) {
+                    println!("{} is not in the dictionary!", word);
+                    input.clear();
+                    continue;
+                }
+
+                break;
+            }
+            Err(_) => panic!("Cannot read a line, exit."),
+        }
+    }
+    input.trim().to_uppercase().to_owned()
 }
 
 fn calculate_guess(correct_word: &String, guess: &String) -> Guess {
@@ -101,10 +150,10 @@ fn calculate_guess(correct_word: &String, guess: &String) -> Guess {
 
     assert!(correct_letters.len() == guess_letters.len());
 
-    let mut correct_it = correct_word.chars();
-    let mut guess_it = guess.chars();
+    let mut correct_it = correct_letters.iter();
+    let mut guess_it = guess_letters.iter();
 
-    for i in 0..correct_word.len() {
+    for i in 0..correct_letters.len() {
         let correct_char = correct_it.next().unwrap();
         let guess_char = guess_it.next().unwrap();
 
