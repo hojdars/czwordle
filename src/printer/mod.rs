@@ -29,6 +29,10 @@ pub fn print_guesses(guesses: &Vec<Guess>) {
     }
 }
 
+pub fn print_divider() {
+    println!("---------------------------------------------------")
+}
+
 pub fn print_letters(letters: &Letters) {
     print_alphabet(
         letters.get_used_letters(),

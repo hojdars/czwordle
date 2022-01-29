@@ -1,5 +1,6 @@
 use std::fs;
 use std::io;
+use std::io::Write;
 
 mod dictionary;
 use dictionary::Dictionary;
@@ -53,6 +54,8 @@ fn play_one_game(dictionary: &Dictionary) {
 
 fn input_word() -> String {
     let mut input = String::new();
+    print!("> ");
+    let _ = io::stdout().flush();
 
     match io::stdin().read_line(&mut input) {
         Ok(_) => input.trim().to_uppercase().to_owned(),
@@ -62,6 +65,7 @@ fn input_word() -> String {
 
 fn handle_valid_guess(game: &Game) -> bool {
     printer::print_guesses(game.get_guesses());
+    printer::print_divider();
     printer::print_letters(game.get_letters());
 
     match game.get_game_state() {
