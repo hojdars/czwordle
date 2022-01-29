@@ -37,7 +37,7 @@ fn play_one_game(dictionary: &Dictionary) {
     let mut game = Game::new(6, dictionary);
 
     loop {
-        let guessed_word = input_word();
+        let guessed_word = input_word(game.get_remaining_guesses() + 1, game.get_total_guesses());
         let guess_result = game.submit_guess(&guessed_word);
 
         let mut is_game_over = false;
@@ -52,9 +52,9 @@ fn play_one_game(dictionary: &Dictionary) {
     }
 }
 
-fn input_word() -> String {
+fn input_word(guess_number: u32, available_guesses: u32) -> String {
     let mut input = String::new();
-    print!("> ");
+    printer::print_caret(guess_number, available_guesses);
     let _ = io::stdout().flush();
 
     match io::stdin().read_line(&mut input) {

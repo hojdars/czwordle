@@ -6,6 +6,11 @@ use colored::*;
 use super::game::Guess;
 use super::letters::Letters;
 
+pub fn print_caret(guess_number: u32, available_guesses: u32) {
+    let text = format!("[{}/{}]", guess_number, available_guesses);
+    print!("{} {} ", text.cyan(), ">".bold());
+}
+
 pub fn print_win(tries: u32) {
     println!(
         "Yay! {}",

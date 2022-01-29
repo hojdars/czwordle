@@ -101,6 +101,14 @@ impl<'d> Game<'d> {
         &self.state.guesses
     }
 
+    pub fn get_remaining_guesses(&self) -> u32 {
+        self.state.guesses.len().try_into().unwrap()
+    }
+
+    pub fn get_total_guesses(&self) -> u32 {
+        self.state.maximum_tries
+    }
+
     fn calculate_guess(&mut self, guessed_word: &str) -> Guess {
         let mut result_guess = Guess {
             is_correct: false,
