@@ -13,6 +13,11 @@ mod letters;
 mod printer;
 
 pub fn run(path_to_dict: &str) {
+    // TODO: Add three options:
+    //      '-h' for help,
+    //      '-t --tries' for altering the number of tries,
+    //      '-l --length' for altering the length of the guessed word
+
     let dictionary = load_dictionary(path_to_dict);
 
     loop {
