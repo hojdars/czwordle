@@ -64,6 +64,7 @@ fn input_word(guess_number: u32, available_guesses: u32) -> String {
 }
 
 fn handle_valid_guess(game: &Game) -> bool {
+    printer::print_divider();
     printer::print_guesses(game.get_guesses());
     printer::print_divider();
     printer::print_letters(game.get_letters());
