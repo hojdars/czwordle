@@ -1,4 +1,5 @@
 use super::dictionary;
+use super::letters::Letters;
 
 #[cfg(test)]
 mod tests;
@@ -34,6 +35,7 @@ struct State {
     maximum_tries: u32,
     word_to_guess: String,
     guesses: Vec<Guess>,
+    letters: Letters,
 }
 
 impl<'d> Game<'d> {
@@ -43,6 +45,7 @@ impl<'d> Game<'d> {
                 maximum_tries,
                 word_to_guess: dictionary.get_random_word(),
                 guesses: Vec::new(),
+                letters: Letters::new(),
             },
             dictionary,
         }
@@ -90,7 +93,15 @@ impl<'d> Game<'d> {
         Ok(guess.clone())
     }
 
-    fn calculate_guess(&self, guessed_word: &str) -> Guess {
+    pub fn get_letters(&self) -> &Letters {
+        &self.state.letters
+    }
+
+    pub fn get_guesses(&self) -> &Vec<Guess> {
+        &self.state.guesses
+    }
+
+    fn calculate_guess(&mut self, guessed_word: &str) -> Guess {
         let mut result_guess = Guess {
             is_correct: false,
             word: guessed_word.to_uppercase(),
@@ -114,13 +125,17 @@ impl<'d> Game<'d> {
             let correct_char = correct_it.next().unwrap();
             let guess_char = guess_it.next().unwrap();
 
+            self.state.letters.add_used_letter(*guess_char);
+
             if correct_char == guess_char {
                 result_guess.green_positions.push(i.try_into().unwrap());
+                self.state.letters.add_green_letter(*guess_char);
                 continue;
             }
 
             if correct_letters.contains(&guess_char) {
                 result_guess.yellow_positions.push(i.try_into().unwrap());
+                self.state.letters.add_yellow_letter(*guess_char);
                 continue;
             }
         }
