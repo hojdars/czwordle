@@ -70,6 +70,15 @@ fn get_game_state_after_correct_guess() {
 }
 
 #[test]
+fn get_correct_word() {
+    let words = "pivo/SHORT\nauto/SHORT\ncivka/OK";
+    let d = Dictionary::new(words, 5);
+    let game = Game::new(6, &d);
+
+    assert_eq!(game.get_correct_word(), "CIVKA");
+}
+
+#[test]
 fn submit_guess_guess_is_correct() {
     let words = "pivo/SHORT\nauto/SHORT\ncivka/OK";
     let d = Dictionary::new(words, 5);
