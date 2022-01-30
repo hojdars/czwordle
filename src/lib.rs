@@ -1,6 +1,5 @@
 use std::fs;
 use std::io;
-use std::io::Write;
 
 mod dictionary;
 use dictionary::Dictionary;
@@ -13,6 +12,11 @@ mod letters;
 
 mod printer;
 
+enum ProgramFlow {
+    NextRound,
+    Exit,
+}
+
 pub fn run(path_to_dict: &str) {
     // TODO: Add three options:
     //      '-h' for help,
@@ -20,11 +24,16 @@ pub fn run(path_to_dict: &str) {
     //      '-l --length' for altering the length of the guessed word
 
     let dictionary = load_dictionary(path_to_dict);
+    play_one_game(&dictionary);
 
     loop {
-        // TODO: Allow playing more than one game without infinite loops
-        println!("New game! Guess a word!");
-        play_one_game(&dictionary);
+        match get_next_action() {
+            ProgramFlow::NextRound => {
+                printer::clear_screen();
+                play_one_game(&dictionary);
+            }
+            ProgramFlow::Exit => break,
+        };
     }
 }
 
@@ -36,14 +45,28 @@ fn load_dictionary(path: &str) -> Dictionary {
 fn play_one_game(dictionary: &Dictionary) {
     let mut game = Game::new(6, dictionary);
 
+    let mut last_error: Option<GuessError> = None;
     loop {
+        printer::clear_screen();
+
+        if !game.get_guesses().is_empty() {
+            printer::print_guesses(game.get_guesses());
+            printer::print_divider();
+            printer::print_letters(game.get_letters());
+        }
+
+        if let Some(err) = last_error {
+            handle_guess_error(&err);
+            last_error = None;
+        }
+
         let guessed_word = input_word(game.get_remaining_guesses() + 1, game.get_total_guesses());
         let guess_result = game.submit_guess(&guessed_word);
 
         let mut is_game_over = false;
         match guess_result {
             Ok(_) => is_game_over = handle_valid_guess(&game),
-            Err(error) => handle_guess_error(&guessed_word, &error),
+            Err(error) => last_error = Some(error),
         }
 
         if is_game_over {
@@ -52,10 +75,40 @@ fn play_one_game(dictionary: &Dictionary) {
     }
 }
 
+fn get_next_action() -> ProgramFlow {
+    printer::print_new_game_query();
+
+    loop {
+        let mut input = String::new();
+        match io::stdin().read_line(&mut input) {
+            Ok(_) => {
+                let input = input.trim();
+
+                if input.chars().count() == 0 {
+                    return ProgramFlow::NextRound;
+                }
+
+                if input.chars().count() > 1 {
+                    continue;
+                }
+
+                let char: char = input.chars().next().unwrap();
+                if char == 'y' || char == 'Y' {
+                    return ProgramFlow::NextRound;
+                } else if char == 'n' || char == 'N' {
+                    return ProgramFlow::Exit;
+                } else {
+                    continue;
+                }
+            }
+            Err(_) => panic!("Cannot read a line, exit."),
+        }
+    }
+}
+
 fn input_word(guess_number: u32, available_guesses: u32) -> String {
     let mut input = String::new();
     printer::print_caret(guess_number, available_guesses);
-    let _ = io::stdout().flush();
 
     match io::stdin().read_line(&mut input) {
         Ok(_) => input.trim().to_uppercase().to_owned(),
@@ -64,11 +117,6 @@ fn input_word(guess_number: u32, available_guesses: u32) -> String {
 }
 
 fn handle_valid_guess(game: &Game) -> bool {
-    printer::print_divider();
-    printer::print_guesses(game.get_guesses());
-    printer::print_divider();
-    printer::print_letters(game.get_letters());
-
     match game.get_game_state() {
         game::GameState::Win(tries) => {
             printer::print_win(tries);
@@ -85,9 +133,9 @@ fn handle_valid_guess(game: &Game) -> bool {
     }
 }
 
-fn handle_guess_error(guessed_word: &str, error: &GuessError) {
+fn handle_guess_error(error: &GuessError) {
     match error {
-        GuessError::NotInDictionary => println!("'{}' is not in the dictionary!", guessed_word),
+        GuessError::NotInDictionary => println!("Word not in the dictionary!"),
         GuessError::WrongLength(letter_count) => println!(
             "Word needs to be 5 letters long! Your word was {} letters long!",
             letter_count

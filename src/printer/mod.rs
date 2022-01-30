@@ -1,4 +1,6 @@
 use std::collections::HashSet;
+use std::io;
+use std::io::Write;
 
 extern crate colored;
 use colored::*;
@@ -6,9 +8,20 @@ use colored::*;
 use super::game::Guess;
 use super::letters::Letters;
 
+pub fn clear_screen() {
+    print!("\x1B[2J\x1B[1;1H");
+    let _ = io::stdout().flush();
+}
+
 pub fn print_caret(guess_number: u32, available_guesses: u32) {
     let text = format!("[{}/{}]", guess_number, available_guesses);
     print!("{} {} ", text.cyan(), ">".bold());
+    let _ = io::stdout().flush();
+}
+
+pub fn print_new_game_query() {
+    print!("Start a new game? {} ", "[Y/n]".bold());
+    let _ = io::stdout().flush();
 }
 
 pub fn print_win(tries: u32) {
