@@ -8,7 +8,7 @@ use super::GuessError;
 #[test]
 fn game_creation() {
     let words = "pivo/SHORT\nauto/SHORT\ncivka/OK\nmicha/OK";
-    let d = Dictionary::new(words);
+    let d = Dictionary::new(words, 5);
 
     let game = Game::new(6, &d);
 
@@ -20,7 +20,7 @@ fn game_creation() {
 #[test]
 fn get_game_state_after_all_guesses_are_depleted() {
     let words = "pivo/SHORT\nauto/SHORT\ncivka/OK\nmicha/OK";
-    let d = Dictionary::new(words);
+    let d = Dictionary::new(words, 5);
     let mut game = Game::new(6, &d);
 
     let state = game.get_game_state();
@@ -52,7 +52,7 @@ fn get_game_state_after_all_guesses_are_depleted() {
 #[test]
 fn get_game_state_after_correct_guess() {
     let words = "pivo/SHORT\nauto/SHORT\ncivka/OK\nmicha/OK";
-    let d = Dictionary::new(words);
+    let d = Dictionary::new(words, 5);
     let mut game = Game::new(6, &d);
 
     let state = game.get_game_state();
@@ -72,7 +72,7 @@ fn get_game_state_after_correct_guess() {
 #[test]
 fn submit_guess_guess_is_correct() {
     let words = "pivo/SHORT\nauto/SHORT\ncivka/OK";
-    let d = Dictionary::new(words);
+    let d = Dictionary::new(words, 5);
     let mut game = Game::new(6, &d);
 
     let error_length = game.submit_guess("guessed_word");
@@ -98,7 +98,7 @@ fn submit_guess_guess_is_correct() {
 #[test]
 fn submit_guess_guess_is_not_correct() {
     let words = "pivo/SHORT\nauto/SHORT\ncivka/OK\nxyzya/OK";
-    let d = Dictionary::new(words);
+    let d = Dictionary::new(words, 5);
     let mut game = Game::new(6, &d);
     game.state.word_to_guess = "civka".to_uppercase();
 

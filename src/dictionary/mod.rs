@@ -10,7 +10,7 @@ pub struct Dictionary {
 }
 
 impl Dictionary {
-    pub fn new(text_file: &str) -> Dictionary {
+    pub fn new(text_file: &str, word_length: u32) -> Dictionary {
         let mut result = Dictionary {
             wordlist: Vec::new(),
             wordset: HashSet::new(),
@@ -20,7 +20,7 @@ impl Dictionary {
             let word_it = line.split('/').next();
             if let Some(string) = word_it {
                 let string_no_whitespace = string.trim();
-                if string_no_whitespace.chars().count() != 5 {
+                if string_no_whitespace.chars().count() != word_length.try_into().unwrap() {
                     continue;
                 }
 

@@ -9,41 +9,39 @@ use game::Game;
 use game::GuessError;
 
 mod letters;
-
 mod printer;
+
+mod options;
 
 enum ProgramFlow {
     NextRound,
     Exit,
 }
 
-pub fn run(path_to_dict: &str) {
-    // TODO: Add three options:
-    //      '-h' for help,
-    //      '-t --tries' for altering the number of tries,
-    //      '-l --length' for altering the length of the guessed word
+pub fn run() {
+    let args: options::Args = options::parse();
 
-    let dictionary = load_dictionary(path_to_dict);
-    play_one_game(&dictionary);
+    let dictionary = load_dictionary(&args.dictionary, args.length);
+    play_one_game(&dictionary, args.tries);
 
     loop {
         match get_next_action() {
             ProgramFlow::NextRound => {
                 printer::clear_screen();
-                play_one_game(&dictionary);
+                play_one_game(&dictionary, args.tries);
             }
             ProgramFlow::Exit => break,
         };
     }
 }
 
-fn load_dictionary(path: &str) -> Dictionary {
+fn load_dictionary(path: &str, word_length: u32) -> Dictionary {
     let contents = fs::read_to_string(path).expect("Something went wrong reading the file");
-    Dictionary::new(&contents)
+    Dictionary::new(&contents, word_length)
 }
 
-fn play_one_game(dictionary: &Dictionary) {
-    let mut game = Game::new(6, dictionary);
+fn play_one_game(dictionary: &Dictionary, maximum_tries: u32) {
+    let mut game = Game::new(maximum_tries, dictionary);
 
     let mut last_error: Option<GuessError> = None;
     loop {
