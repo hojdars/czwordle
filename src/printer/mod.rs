@@ -10,34 +10,32 @@ use super::letters::Letters;
 
 pub fn clear_screen() {
     print!("\x1B[2J\x1B[1;1H");
-    let _ = io::stdout().flush();
+    io::stdout().flush().unwrap()
 }
 
 pub fn print_caret(guess_number: u32, available_guesses: u32) {
     let text = format!("[{}/{}]", guess_number, available_guesses);
     print!("{} {} ", text.cyan(), ">".bold());
-    let _ = io::stdout().flush();
+    io::stdout().flush().unwrap()
 }
 
 pub fn print_new_game_query() {
     print!("Start a new game? {} ", "[Y/n]".bold());
-    let _ = io::stdout().flush();
+    io::stdout().flush().unwrap()
 }
 
 pub fn print_win(tries: u32) {
     println!(
         "Yay! {}",
-        format!("You win in {} tries!", tries)
-            .green()
-            .bold()
-    );
+        format!("You win in {} tries!", tries).green().bold()
+    )
 }
 
 pub fn print_lose(correct_word: &str) {
     println!(
         "You lose! :( The word was: {}",
         correct_word.to_string().red().bold()
-    );
+    )
 }
 
 pub fn print_guesses(guesses: &Vec<Guess>) {
@@ -68,7 +66,7 @@ fn print_guess(guess: &Guess) {
             print!("{} ", char.to_string().to_uppercase());
         }
     }
-    println!();
+    println!()
 }
 
 fn print_letter(
@@ -109,8 +107,8 @@ fn print_custom_row(
 ) {
     let mut last_post: i32 = 0;
     for (p, pos) in row {
-        let pocet_mezer = (pos - last_post) * 2 - 1;
-        for _ in 0..pocet_mezer {
+        let number_of_spaces = (pos - last_post) * 2 - 1;
+        for _ in 0..number_of_spaces {
             print!(" ");
         }
         print_letter(*p, used_letters, green_letters, yellow_letters);
@@ -123,7 +121,7 @@ fn print_alphabet(
     green_letters: &HashSet<char>,
     yellow_letters: &HashSet<char>,
 ) {
-    let hacky_carky = [
+    let diacritics = [
         ('á', 0),
         ('č', 2),
         ('ď', 3),
@@ -138,20 +136,20 @@ fn print_alphabet(
         ('ý', 24),
         ('ž', 25),
     ];
-    let hacky_carky_dve = [('é', 4), ('ů', 20)];
+    let diacritics_second_row = [('é', 4), ('ů', 20)];
 
     print_all_row(used_letters, green_letters, yellow_letters);
     println!();
 
-    print_custom_row(&hacky_carky, used_letters, green_letters, yellow_letters);
+    print_custom_row(&diacritics, used_letters, green_letters, yellow_letters);
     println!();
 
     print!(" ");
     print_custom_row(
-        &hacky_carky_dve,
+        &diacritics_second_row,
         used_letters,
         green_letters,
         yellow_letters,
     );
-    println!();
+    println!()
 }
