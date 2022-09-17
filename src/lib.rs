@@ -24,14 +24,9 @@ pub fn run() {
     let dictionary = load_dictionary(&args.dictionary, args.length);
     play_one_game(&dictionary, args.tries);
 
-    loop {
-        match get_next_action() {
-            ProgramFlow::NextRound => {
-                printer::clear_screen();
-                play_one_game(&dictionary, args.tries);
-            }
-            ProgramFlow::Exit => break,
-        };
+    while let ProgramFlow::NextRound = get_next_action() {
+        printer::clear_screen();
+        play_one_game(&dictionary, args.tries);
     }
 }
 
@@ -109,7 +104,7 @@ fn input_word(guess_number: u32, available_guesses: u32) -> String {
     printer::print_caret(guess_number, available_guesses);
 
     match io::stdin().read_line(&mut input) {
-        Ok(_) => input.trim().to_uppercase().to_owned(),
+        Ok(_) => input.trim().to_uppercase(),
         Err(_) => panic!("Cannot read a line, exit."),
     }
 }
@@ -118,15 +113,15 @@ fn handle_valid_guess(game: &Game) -> bool {
     match game.get_game_state() {
         game::GameState::Win(tries) => {
             printer::print_win(tries);
-            return true;
+            true
         }
         game::GameState::Lose => {
             printer::print_lose(&game.get_correct_word());
-            return true;
+            true
         }
         game::GameState::Ongoing(_) => {
-            print!("\n");
-            return false;
+            println!();
+            false
         }
     }
 }

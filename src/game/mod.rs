@@ -12,13 +12,13 @@ pub struct Guess {
     pub green_positions: Vec<u32>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum GuessError {
     NotInDictionary,
     WrongLength(u32),
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum GameState {
     Win(u32),
     Lose,
@@ -63,12 +63,12 @@ impl<'d> Game<'d> {
             return GameState::Win(guess_count);
         }
 
-        let are_guesses_depleted = guess_count == self.state.maximum_tries.try_into().unwrap();
+        let are_guesses_depleted = guess_count == self.state.maximum_tries;
 
         if are_guesses_depleted {
-            return GameState::Lose;
+            GameState::Lose
         } else {
-            return GameState::Ongoing(guess_count);
+            GameState::Ongoing(guess_count)
         }
     }
 
@@ -90,7 +90,7 @@ impl<'d> Game<'d> {
 
         let guess = self.calculate_guess(guessed_word);
         self.state.guesses.push(guess.clone());
-        Ok(guess.clone())
+        Ok(guess)
     }
 
     pub fn get_letters(&self) -> &Letters {
@@ -141,7 +141,7 @@ impl<'d> Game<'d> {
                 continue;
             }
 
-            if correct_letters.contains(&guess_char) {
+            if correct_letters.contains(guess_char) {
                 result_guess.yellow_positions.push(i.try_into().unwrap());
                 self.state.letters.add_yellow_letter(*guess_char);
                 continue;

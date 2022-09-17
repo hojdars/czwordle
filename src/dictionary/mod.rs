@@ -37,7 +37,7 @@ impl Dictionary {
     }
 
     pub fn get_random_word(&self) -> String {
-        let num: usize = rand::thread_rng().gen_range(0..self.wordlist.len().try_into().unwrap());
+        let num: usize = rand::thread_rng().gen_range(0..self.wordlist.len());
         self.wordlist[num].clone()
     }
 

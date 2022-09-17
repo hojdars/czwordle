@@ -28,7 +28,6 @@ pub fn print_win(tries: u32) {
     println!(
         "Yay! {}",
         format!("You win in {} tries!", tries)
-            .to_string()
             .green()
             .bold()
     );
@@ -60,8 +59,7 @@ pub fn print_letters(letters: &Letters) {
 }
 
 fn print_guess(guess: &Guess) {
-    let mut i: u32 = 0;
-    for char in guess.word.chars() {
+    for (i, char) in (0_u32..).zip(guess.word.chars()) {
         if guess.green_positions.contains(&i) {
             print!("{} ", char.to_string().to_uppercase().green().bold());
         } else if guess.yellow_positions.contains(&i) {
@@ -69,9 +67,8 @@ fn print_guess(guess: &Guess) {
         } else {
             print!("{} ", char.to_string().to_uppercase());
         }
-        i = i + 1;
     }
-    print!("\n");
+    println!();
 }
 
 fn print_letter(
@@ -88,7 +85,7 @@ fn print_letter(
     } else if used_letters.contains(&letter) {
         print!("{}", letter.to_string().hidden());
     } else {
-        print!("{}", letter.to_string());
+        print!("{}", letter);
     }
 }
 
@@ -144,10 +141,10 @@ fn print_alphabet(
     let hacky_carky_dve = [('é', 4), ('ů', 20)];
 
     print_all_row(used_letters, green_letters, yellow_letters);
-    print!("\n");
+    println!();
 
     print_custom_row(&hacky_carky, used_letters, green_letters, yellow_letters);
-    print!("\n");
+    println!();
 
     print!(" ");
     print_custom_row(
@@ -156,5 +153,5 @@ fn print_alphabet(
         green_letters,
         yellow_letters,
     );
-    print!("\n");
+    println!();
 }
