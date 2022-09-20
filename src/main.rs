@@ -28,11 +28,12 @@ async fn main() {
             break;
         }
 
-        if is_key_pressed(KeyCode::Enter) {
-            if word.chars().count() == LENGTH as usize && words.len() < TRIES as usize {
-                words.push(word.to_uppercase());
-                word.clear();
-            }
+        if is_key_pressed(KeyCode::Enter)
+            && word.chars().count() == LENGTH as usize
+            && words.len() < TRIES as usize
+        {
+            words.push(word.to_uppercase());
+            word.clear();
         }
 
         if is_key_pressed(KeyCode::Backspace) {
