@@ -36,6 +36,6 @@ pub fn draw_words(current_word: &String, past_words: &Vec<String>, text_params: 
     }
 
     let posy = 100.0 + past_words.len() as f32 * 80.0;
-    draw_word(120.0, posy, current_word, &text_params);
+    draw_word(120.0, posy, current_word, text_params);
     draw_boxes(113.0, posy - 45.0, 5);
 }
