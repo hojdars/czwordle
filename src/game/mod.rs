@@ -102,7 +102,7 @@ impl<'d> Game<'d> {
     }
 
     pub fn get_remaining_guesses(&self) -> u32 {
-        self.state.guesses.len().try_into().unwrap()
+        self.get_total_guesses() - self.state.guesses.len() as u32
     }
 
     pub fn get_total_guesses(&self) -> u32 {
