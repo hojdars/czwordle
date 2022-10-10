@@ -15,13 +15,14 @@ mod game;
 use game::Game;
 use game::Guess;
 use game::GuessError;
+use macroquad::text;
 
 enum InputResult {
     Incomplete,
     Entered,
     Quit,
 }
-
+#[derive(PartialEq)]
 enum GameState {
     Menu,
     Game,
@@ -29,12 +30,15 @@ enum GameState {
     Win,
 }
 
+struct Settings {
+    word_length: u32,
+    attempts: u32,
+}
+
 struct State<'d> {
     game_state: GameState,
     word: String,
-    game: Game<'d>,
-    tries: u32,
-    word_length: u32,
+    game: Option<Game<'d>>,
 }
 
 async fn load_fonts(path: &str) -> TextParams {
@@ -82,45 +86,25 @@ async fn handle_input(word: &mut String, max_len: u32) -> InputResult {
     InputResult::Incomplete
 }
 
-async fn run_menu<'a, 'b>(state: &mut State<'a>, dict: &'b Dictionary, font_params: &TextParams)
-where
-    'b: 'a,
-{
-    if is_key_pressed(KeyCode::N) {
-        state.game_state = GameState::Game;
-        while let Some(_) = get_char_pressed() {}
-        state.game = Game::new(state.tries, dict);
-        return;
+async fn run_game(settings: &Settings, state: &mut State<'_>, font_params: &TextParams) {
+    if state.game.is_none() {
+        panic!("Game was empty, game cannot be empty if we are running it.");
     }
+    let game = state.game.as_mut().unwrap();
 
-    if is_key_released(KeyCode::Up) {
-        state.tries += 1;
-    }
-
-    if is_key_released(KeyCode::Down) {
-        state.tries -= 1;
-    }
-    if is_key_pressed(KeyCode::Escape) {
-        state.game_state = GameState::Quit;
-        return;
-    }
-
-    draw_menu(state.tries, font_params);
-}
-
-async fn run_game(state: &mut State<'_>, font_params: &TextParams) {
-    if state.game.get_remaining_guesses() == 0 {
+    if game.get_remaining_guesses() == 0 {
         state.game_state = GameState::Menu; //TODO: Lose
+        println!("{}", game.get_correct_word());
         return;
     }
 
-    match handle_input(&mut state.word, state.word_length).await {
+    match handle_input(&mut state.word, settings.word_length).await {
         InputResult::Quit => {
             state.game_state = GameState::Quit;
             return;
         }
         InputResult::Entered => {
-            let result = state.game.submit_guess(state.word.as_str());
+            let result = game.submit_guess(state.word.as_str());
             match result {
                 Ok(Guess { is_correct, .. }) => {
                     if is_correct {
@@ -142,14 +126,18 @@ async fn run_game(state: &mut State<'_>, font_params: &TextParams) {
     clear_background(BLACK);
 
     draw_words(
-        state.word_length,
+        settings.word_length,
         &state.word,
-        state.game.get_guesses(),
+        game.get_guesses(),
         &font_params,
     );
 }
 
-async fn run_win(state: &mut State<'_>, font_params: &TextParams) {
+async fn run_win(settings: &Settings, state: &mut State<'_>, font_params: &TextParams) {
+    if state.game.is_none() {
+        panic!("Game was empty, game cannot be empty if we are running it.");
+    }
+
     if is_key_pressed(KeyCode::M) {
         state.game_state = GameState::Menu;
         get_char_pressed();
@@ -163,7 +151,84 @@ async fn run_win(state: &mut State<'_>, font_params: &TextParams) {
 
     clear_background(BLACK);
 
-    draw_win(state.word_length, state.game.get_guesses(), &font_params);
+    draw_win(
+        settings.word_length,
+        state.game.as_ref().unwrap().get_guesses(),
+        &font_params,
+    );
+}
+
+async fn menu_loop(
+    settings: &mut Settings,
+    dictionary: &mut Dictionary,
+    font_params: &TextParams,
+    text_file: &str,
+) -> bool {
+    let mut state: GameState = GameState::Menu;
+    loop {
+        if is_key_pressed(KeyCode::N) {
+            state = GameState::Game;
+            while let Some(_) = get_char_pressed() {}
+        } else if is_key_released(KeyCode::Up) {
+            settings.attempts += 1;
+        } else if is_key_released(KeyCode::Down) && settings.attempts > 1 {
+            settings.attempts -= 1;
+        } else if is_key_released(KeyCode::Left) && settings.word_length > 2 {
+            settings.word_length -= 1;
+        } else if is_key_released(KeyCode::Right) && settings.word_length < 8 {
+            settings.word_length += 1;
+        } else if is_key_pressed(KeyCode::Escape) {
+            state = GameState::Quit;
+        }
+
+        draw_menu(settings.attempts, settings.word_length, font_params);
+
+        if state == GameState::Game {
+            if dictionary.get_word_length() != settings.word_length {
+                *dictionary = Dictionary::new(text_file, settings.word_length);
+            }
+            return true;
+        }
+
+        if state == GameState::Quit {
+            return false;
+        }
+
+        next_frame().await
+    }
+}
+
+async fn game_loop(
+    settings: &Settings,
+    dictionary: &Dictionary,
+    font_params: &TextParams,
+) -> GameState {
+    let mut state: State = State {
+        game_state: GameState::Game,
+        word: String::new(),
+        game: Some(Game::new(settings.attempts, &dictionary)),
+    };
+
+    loop {
+        match state.game_state {
+            GameState::Menu => {
+                println!("game over");
+                break;
+            }
+            GameState::Game => {
+                run_game(&settings, &mut state, &font_params).await;
+            }
+            GameState::Quit => {
+                break;
+            }
+            GameState::Win => {
+                run_win(&settings, &mut state, &font_params).await;
+            }
+        }
+
+        next_frame().await
+    }
+    state.game_state
 }
 
 #[macroquad::main("CZWORDLE")]
@@ -172,32 +237,22 @@ async fn main() {
 
     let text_file = std::include_str!("../data/jmena.txt");
 
-    let dictionary: Dictionary = Dictionary::new(text_file, 5);
-
-    let mut state: State = State {
-        game_state: GameState::Menu,
-        word: String::new(),
-        game: Game::new(6, &dictionary),
-        tries: 6,
+    let mut settings: Settings = Settings {
         word_length: 5,
+        attempts: 6,
     };
 
+    let mut dictionary: Dictionary = Dictionary::new(text_file, settings.word_length);
+
     loop {
-        match state.game_state {
-            GameState::Menu => {
-                run_menu(&mut state, &dictionary, &font_params).await;
-            }
-            GameState::Game => {
-                run_game(&mut state, &font_params).await;
-            }
-            GameState::Quit => {
-                break;
-            }
-            GameState::Win => {
-                run_win(&mut state, &font_params).await;
-            }
+        let c = menu_loop(&mut settings, &mut dictionary, &font_params, text_file).await;
+        if !c {
+            break;
         }
 
-        next_frame().await
+        let r = game_loop(&settings, &dictionary, &font_params).await;
+        if r == GameState::Quit {
+            break;
+        }
     }
 }

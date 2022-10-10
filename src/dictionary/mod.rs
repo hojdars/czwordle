@@ -4,9 +4,11 @@ use std::collections::HashSet;
 #[cfg(test)]
 mod tests;
 
+#[derive(Clone)]
 pub struct Dictionary {
     wordlist: Vec<String>,
     wordset: HashSet<String>,
+    word_length: u32,
 }
 
 impl Dictionary {
@@ -14,6 +16,7 @@ impl Dictionary {
         let mut result = Dictionary {
             wordlist: Vec::new(),
             wordset: HashSet::new(),
+            word_length: word_length,
         };
 
         for line in text_file.lines() {
@@ -43,5 +46,9 @@ impl Dictionary {
 
     pub fn contains(&self, word: &str) -> bool {
         self.wordset.contains(&word.to_uppercase())
+    }
+
+    pub fn get_word_length(&self) -> u32 {
+        return self.word_length;
     }
 }
