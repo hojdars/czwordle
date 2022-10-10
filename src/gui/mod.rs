@@ -59,7 +59,7 @@ fn draw_input_box(
     let posx = macroquad::window::screen_width() / 2.0 - (word_length as f32 * 35.0) / 2.0;
     let posy = 120.0 + guesses_len as f32 * 80.0;
     draw_word(posx, posy, current_word, text_params);
-    draw_boxes(posx - 7.0, posy - 45.0, 5);
+    draw_boxes(posx - 7.0, posy - 45.0, word_length);
 }
 
 pub fn draw_words(
@@ -70,14 +70,10 @@ pub fn draw_words(
 ) {
     draw_guesses(word_length, past_words, text_params);
 
-    if past_words.len() >= 6 {
-        return;
-    }
-
     draw_input_box(word_length, past_words.len(), current_word, text_params);
 }
 
-pub fn draw_menu(tries: u32, text_params: &TextParams) {
+pub fn draw_menu(tries: u32, length: u32, text_params: &TextParams) {
     let mut title: TextParams = *text_params;
     title.font_size = 60;
     title.color = Color::new(1.0, 0.4, 0.0, 1.0);
@@ -90,8 +86,19 @@ pub fn draw_menu(tries: u32, text_params: &TextParams) {
     );
 
     draw_text_ex("[N] for new game", 60.0, 180.0, *text_params);
-    draw_text_ex(format!("[↑↓] {} attempts", tries).as_str(), 60.0, 240.0, *text_params);
-    draw_text_ex("[Esc] to quit", 60.0, 300.0, *text_params);
+    draw_text_ex(
+        format!("[↑↓] {} attempts", tries).as_str(),
+        60.0,
+        240.0,
+        *text_params,
+    );
+    draw_text_ex(
+        format!("[←→] {} word length", length).as_str(),
+        60.0,
+        300.0,
+        *text_params,
+    );
+    draw_text_ex("[Esc] to quit", 60.0, 360.0, *text_params);
 }
 
 pub fn draw_win(word_length: u32, past_words: &Vec<Guess>, text_params: &TextParams) {
