@@ -232,7 +232,18 @@ async fn game_loop(
     state.game_state
 }
 
-#[macroquad::main("CZWORDLE")]
+
+fn window_conf() -> Conf {
+    Conf {
+        window_title: "czWORDLE".to_owned(),
+        fullscreen: false,
+        window_height: 1000,
+        window_width: 700,
+        ..Default::default()
+    }
+}
+
+#[macroquad::main(window_conf)]
 async fn main() {
     let font_params: TextParams = load_fonts("ttf/NotoSansMono-Regular.ttf").await;
 
