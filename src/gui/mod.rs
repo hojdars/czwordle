@@ -1,6 +1,7 @@
 use macroquad::prelude::*;
 
 use super::game::Guess;
+use super::letters::Letters;
 
 pub fn draw_word(x: f32, y: f32, word: &String, tp: &TextParams) {
     for (i, c) in (0_usize..word.len()).zip(word.chars()) {
@@ -110,4 +111,80 @@ pub fn draw_win(word_length: u32, past_words: &Vec<Guess>, text_params: &TextPar
 
     let posy = 120.0 + (past_words.len() as f32 + 1.0) * 80.0;
     draw_text_ex("You win. Press M for menu.", 60.0, posy, win);
+}
+
+pub fn draw_letters(letters: &Letters, total_guesses: u32, text_params: &TextParams) {
+    let rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+    let diacritic_rows = ["ěščřžýáíé", "ďťňóúů"];
+
+    let start_y = 160.0 + total_guesses as f32 * 80.0;
+
+    let unused_params = TextParams {
+        color: Color::new(1.0, 1.0, 1.0, 1.0),
+        ..*text_params
+    };
+    let used_params = TextParams {
+        color: Color::new(0.3, 0.3, 0.3, 1.0),
+        ..*text_params
+    };
+    let yellow_params = TextParams {
+        color: Color::new(1.0, 1.0, 0.0, 1.0),
+        ..*text_params
+    };
+    let green_params = TextParams {
+        color: Color::new(0.0, 1.0, 0.0, 1.0),
+        ..*text_params
+    };
+
+    for (row_number, letter_row) in (0usize..).zip(rows) {
+        let start_x: f32 = macroquad::window::screen_width() / 2.0
+            - (letter_row.chars().count() as f32 * 40.0) / 2.0;
+        let pos_y: f32 = start_y + row_number as f32 * 55.0;
+
+        for (i, l) in (0usize..).zip(
+            letter_row
+                .chars()
+                .flat_map(|c| c.to_uppercase())
+                .collect::<String>()
+                .chars(),
+        ) {
+            let pos_x: f32 = start_x + i as f32 * 40.0;
+
+            if letters.get_green_letters().contains(&l) {
+                draw_text_ex(&l.to_string(), pos_x, pos_y, green_params);
+            } else if letters.get_yellow_letters().contains(&l) {
+                draw_text_ex(&l.to_string(), pos_x, pos_y, yellow_params);
+            } else if letters.get_used_letters().contains(&l) {
+                draw_text_ex(&l.to_string(), pos_x, pos_y, used_params);
+            } else {
+                draw_text_ex(&l.to_string(), pos_x, pos_y, unused_params);
+            }
+        }
+    }
+
+    for (row_number, letter_row) in (0usize..).zip(diacritic_rows) {
+        let start_x: f32 = macroquad::window::screen_width() / 2.0
+            - (letter_row.chars().count() as f32 * 40.0) / 2.0;
+        let pos_y: f32 = start_y + (row_number + 4) as f32 * 55.0;
+
+        for (i, l) in (0usize..).zip(
+            letter_row
+                .chars()
+                .flat_map(|c| c.to_uppercase())
+                .collect::<String>()
+                .chars(),
+        ) {
+            let pos_x: f32 = start_x + i as f32 * 40.0;
+
+            if letters.get_green_letters().contains(&l) {
+                draw_text_ex(&l.to_string(), pos_x, pos_y, green_params);
+            } else if letters.get_yellow_letters().contains(&l) {
+                draw_text_ex(&l.to_string(), pos_x, pos_y, yellow_params);
+            } else if letters.get_used_letters().contains(&l) {
+                draw_text_ex(&l.to_string(), pos_x, pos_y, used_params);
+            } else {
+                draw_text_ex(&l.to_string(), pos_x, pos_y, unused_params);
+            }
+        }
+    }
 }
