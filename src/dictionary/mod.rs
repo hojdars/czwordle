@@ -49,6 +49,6 @@ impl Dictionary {
     }
 
     pub fn get_word_length(&self) -> u32 {
-        return self.word_length;
+        self.word_length
     }
 }

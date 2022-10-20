@@ -192,7 +192,7 @@ pub fn draw_letters(letters: &Letters, total_guesses: u32, text_params: &TextPar
 pub fn draw_loss(
     word_length: u32,
     past_words: &Vec<Guess>,
-    correct_word: &String,
+    correct_word: &str,
     text_params: &TextParams,
 ) {
     let red_text = TextParams {
@@ -204,5 +204,5 @@ pub fn draw_loss(
 
     let start_y = 160.0 + past_words.len() as f32 * 80.0;
 
-    draw_text_ex(&correct_word, 130.0, start_y, red_text);
+    draw_text_ex(correct_word, 130.0, start_y, red_text);
 }

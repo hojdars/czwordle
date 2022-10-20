@@ -115,7 +115,7 @@ async fn run_game(settings: &Settings, state: &mut State<'_>, font_params: &Text
                 Err(GuessError::NotInDictionary) => {
                     state.word.clear();
                 }
-                Err(GuessError::WrongLength(len)) => {
+                Err(GuessError::WrongLength(_len)) => {
                     state.word.clear();
                 }
             }
@@ -129,10 +129,10 @@ async fn run_game(settings: &Settings, state: &mut State<'_>, font_params: &Text
         settings.word_length,
         &state.word,
         game.get_guesses(),
-        &font_params,
+        font_params,
     );
 
-    draw_letters(game.get_letters(), game.get_total_guesses(), &font_params);
+    draw_letters(game.get_letters(), game.get_total_guesses(), font_params);
 }
 
 async fn run_win(settings: &Settings, state: &mut State<'_>, font_params: &TextParams) {
@@ -156,7 +156,7 @@ async fn run_win(settings: &Settings, state: &mut State<'_>, font_params: &TextP
     draw_win(
         settings.word_length,
         state.game.as_ref().unwrap().get_guesses(),
-        &font_params,
+        font_params,
     );
 }
 
@@ -182,7 +182,7 @@ async fn run_loss(settings: &Settings, state: &mut State<'_>, font_params: &Text
         settings.word_length,
         state.game.as_ref().unwrap().get_guesses(),
         &state.game.as_ref().unwrap().get_correct_word(),
-        &font_params,
+        font_params,
     );
 }
 
@@ -196,7 +196,7 @@ async fn menu_loop(
     loop {
         if is_key_pressed(KeyCode::N) {
             state = ApplicationState::Game;
-            while let Some(_) = get_char_pressed() {}
+            while get_char_pressed().is_some() {}
         } else if is_key_released(KeyCode::Up) {
             settings.attempts += 1;
         } else if is_key_released(KeyCode::Down) && settings.attempts > 1 {
@@ -234,7 +234,7 @@ async fn game_loop(
     let mut state: State = State {
         game_state: ApplicationState::Game,
         word: String::new(),
-        game: Some(Game::new(settings.attempts, &dictionary)),
+        game: Some(Game::new(settings.attempts, dictionary)),
     };
 
     loop {
@@ -243,16 +243,16 @@ async fn game_loop(
                 break;
             }
             ApplicationState::Game => {
-                run_game(&settings, &mut state, &font_params).await;
+                run_game(settings, &mut state, font_params).await;
             }
             ApplicationState::Quit => {
                 break;
             }
             ApplicationState::Win => {
-                run_win(&settings, &mut state, &font_params).await;
+                run_win(settings, &mut state, font_params).await;
             }
             ApplicationState::Loss => {
-                run_loss(&settings, &mut state, &font_params).await;
+                run_loss(settings, &mut state, font_params).await;
             }
         }
 
