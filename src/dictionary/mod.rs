@@ -16,7 +16,7 @@ impl Dictionary {
         let mut result = Dictionary {
             wordlist: Vec::new(),
             wordset: HashSet::new(),
-            word_length: word_length,
+            word_length,
         };
 
         for line in text_file.lines() {
