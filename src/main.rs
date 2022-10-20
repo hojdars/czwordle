@@ -4,6 +4,7 @@ mod gui;
 use gui::draw_menu;
 use gui::draw_win;
 use gui::draw_words;
+use gui::draw_letters;
 
 mod dictionary;
 use dictionary::Dictionary;
@@ -129,6 +130,8 @@ async fn run_game(settings: &Settings, state: &mut State<'_>, font_params: &Text
         game.get_guesses(),
         &font_params,
     );
+
+    draw_letters(game.get_letters(), game.get_total_guesses(), &font_params);
 }
 
 async fn run_win(settings: &Settings, state: &mut State<'_>, font_params: &TextParams) {
