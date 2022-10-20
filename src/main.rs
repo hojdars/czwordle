@@ -1,7 +1,6 @@
 use macroquad::prelude::*;
 
 mod gui;
-use gui::draw_guesses;
 use gui::draw_menu;
 use gui::draw_win;
 use gui::draw_words;
@@ -15,7 +14,6 @@ mod game;
 use game::Game;
 use game::Guess;
 use game::GuessError;
-use macroquad::text;
 
 enum InputResult {
     Incomplete,
@@ -23,7 +21,7 @@ enum InputResult {
     Quit,
 }
 #[derive(PartialEq)]
-enum GameState {
+enum ApplicationState {
     Menu,
     Game,
     Quit,
@@ -36,7 +34,7 @@ struct Settings {
 }
 
 struct State<'d> {
-    game_state: GameState,
+    game_state: ApplicationState,
     word: String,
     game: Option<Game<'d>>,
 }
@@ -93,14 +91,14 @@ async fn run_game(settings: &Settings, state: &mut State<'_>, font_params: &Text
     let game = state.game.as_mut().unwrap();
 
     if game.get_remaining_guesses() == 0 {
-        state.game_state = GameState::Menu; //TODO: Lose
+        state.game_state = ApplicationState::Menu; //TODO: Lose
         println!("{}", game.get_correct_word());
         return;
     }
 
     match handle_input(&mut state.word, settings.word_length).await {
         InputResult::Quit => {
-            state.game_state = GameState::Quit;
+            state.game_state = ApplicationState::Quit;
             return;
         }
         InputResult::Entered => {
@@ -108,7 +106,7 @@ async fn run_game(settings: &Settings, state: &mut State<'_>, font_params: &Text
             match result {
                 Ok(Guess { is_correct, .. }) => {
                     if is_correct {
-                        state.game_state = GameState::Win;
+                        state.game_state = ApplicationState::Win;
                     }
                     state.word.clear();
                 }
@@ -139,13 +137,13 @@ async fn run_win(settings: &Settings, state: &mut State<'_>, font_params: &TextP
     }
 
     if is_key_pressed(KeyCode::M) {
-        state.game_state = GameState::Menu;
+        state.game_state = ApplicationState::Menu;
         get_char_pressed();
         return;
     }
 
     if is_key_pressed(KeyCode::Escape) {
-        state.game_state = GameState::Quit;
+        state.game_state = ApplicationState::Quit;
         return;
     }
 
@@ -164,10 +162,10 @@ async fn menu_loop(
     font_params: &TextParams,
     text_file: &str,
 ) -> bool {
-    let mut state: GameState = GameState::Menu;
+    let mut state: ApplicationState = ApplicationState::Menu;
     loop {
         if is_key_pressed(KeyCode::N) {
-            state = GameState::Game;
+            state = ApplicationState::Game;
             while let Some(_) = get_char_pressed() {}
         } else if is_key_released(KeyCode::Up) {
             settings.attempts += 1;
@@ -178,19 +176,19 @@ async fn menu_loop(
         } else if is_key_released(KeyCode::Right) && settings.word_length < 8 {
             settings.word_length += 1;
         } else if is_key_pressed(KeyCode::Escape) {
-            state = GameState::Quit;
+            state = ApplicationState::Quit;
         }
 
         draw_menu(settings.attempts, settings.word_length, font_params);
 
-        if state == GameState::Game {
+        if state == ApplicationState::Game {
             if dictionary.get_word_length() != settings.word_length {
                 *dictionary = Dictionary::new(text_file, settings.word_length);
             }
             return true;
         }
 
-        if state == GameState::Quit {
+        if state == ApplicationState::Quit {
             return false;
         }
 
@@ -202,26 +200,26 @@ async fn game_loop(
     settings: &Settings,
     dictionary: &Dictionary,
     font_params: &TextParams,
-) -> GameState {
+) -> ApplicationState {
     let mut state: State = State {
-        game_state: GameState::Game,
+        game_state: ApplicationState::Game,
         word: String::new(),
         game: Some(Game::new(settings.attempts, &dictionary)),
     };
 
     loop {
         match state.game_state {
-            GameState::Menu => {
+            ApplicationState::Menu => {
                 println!("game over");
                 break;
             }
-            GameState::Game => {
+            ApplicationState::Game => {
                 run_game(&settings, &mut state, &font_params).await;
             }
-            GameState::Quit => {
+            ApplicationState::Quit => {
                 break;
             }
-            GameState::Win => {
+            ApplicationState::Win => {
                 run_win(&settings, &mut state, &font_params).await;
             }
         }
@@ -251,7 +249,7 @@ async fn main() {
         }
 
         let r = game_loop(&settings, &dictionary, &font_params).await;
-        if r == GameState::Quit {
+        if r == ApplicationState::Quit {
             break;
         }
     }
