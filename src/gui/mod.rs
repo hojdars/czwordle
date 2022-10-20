@@ -188,3 +188,21 @@ pub fn draw_letters(letters: &Letters, total_guesses: u32, text_params: &TextPar
         }
     }
 }
+
+pub fn draw_loss(
+    word_length: u32,
+    past_words: &Vec<Guess>,
+    correct_word: &String,
+    text_params: &TextParams,
+) {
+    let red_text = TextParams {
+        color: Color::new(1.0, 0.0, 0.0, 1.0),
+        ..*text_params
+    };
+
+    draw_guesses(word_length, past_words, text_params);
+
+    let start_y = 160.0 + past_words.len() as f32 * 80.0;
+
+    draw_text_ex(&correct_word, 130.0, start_y, red_text);
+}

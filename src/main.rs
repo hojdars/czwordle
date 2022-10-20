@@ -1,10 +1,11 @@
 use macroquad::prelude::*;
 
 mod gui;
+use gui::draw_letters;
+use gui::draw_loss;
 use gui::draw_menu;
 use gui::draw_win;
 use gui::draw_words;
-use gui::draw_letters;
 
 mod dictionary;
 use dictionary::Dictionary;
@@ -27,6 +28,7 @@ enum ApplicationState {
     Game,
     Quit,
     Win,
+    Loss,
 }
 
 struct Settings {
@@ -92,8 +94,7 @@ async fn run_game(settings: &Settings, state: &mut State<'_>, font_params: &Text
     let game = state.game.as_mut().unwrap();
 
     if game.get_remaining_guesses() == 0 {
-        state.game_state = ApplicationState::Menu; //TODO: Lose
-        println!("{}", game.get_correct_word());
+        state.game_state = ApplicationState::Loss;
         return;
     }
 
@@ -159,6 +160,32 @@ async fn run_win(settings: &Settings, state: &mut State<'_>, font_params: &TextP
     );
 }
 
+async fn run_loss(settings: &Settings, state: &mut State<'_>, font_params: &TextParams) {
+    if state.game.is_none() {
+        panic!("Game was empty, game cannot be empty if we are running it.");
+    }
+
+    if is_key_pressed(KeyCode::M) {
+        state.game_state = ApplicationState::Menu;
+        get_char_pressed();
+        return;
+    }
+
+    if is_key_pressed(KeyCode::Escape) {
+        state.game_state = ApplicationState::Quit;
+        return;
+    }
+
+    clear_background(BLACK);
+
+    draw_loss(
+        settings.word_length,
+        state.game.as_ref().unwrap().get_guesses(),
+        &state.game.as_ref().unwrap().get_correct_word(),
+        &font_params,
+    );
+}
+
 async fn menu_loop(
     settings: &mut Settings,
     dictionary: &mut Dictionary,
@@ -213,7 +240,6 @@ async fn game_loop(
     loop {
         match state.game_state {
             ApplicationState::Menu => {
-                println!("game over");
                 break;
             }
             ApplicationState::Game => {
@@ -225,13 +251,15 @@ async fn game_loop(
             ApplicationState::Win => {
                 run_win(&settings, &mut state, &font_params).await;
             }
+            ApplicationState::Loss => {
+                run_loss(&settings, &mut state, &font_params).await;
+            }
         }
 
         next_frame().await
     }
     state.game_state
 }
-
 
 fn window_conf() -> Conf {
     Conf {
