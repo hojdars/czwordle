@@ -14,8 +14,8 @@ mod letters;
 
 mod game;
 use game::Game;
-use game::Guess;
-use game::GuessError;
+
+use crate::game::GameState;
 
 enum InputResult {
     Incomplete,
@@ -27,8 +27,6 @@ enum ApplicationState {
     Menu,
     Game,
     Quit,
-    Win,
-    Loss,
 }
 
 struct Settings {
@@ -37,7 +35,6 @@ struct Settings {
 }
 
 struct State<'d> {
-    game_state: ApplicationState,
     word: String,
     game: Option<Game<'d>>,
 }
@@ -87,38 +84,27 @@ async fn handle_input(word: &mut String, max_len: u32) -> InputResult {
     InputResult::Incomplete
 }
 
-async fn run_game(settings: &Settings, state: &mut State<'_>, font_params: &TextParams) {
-    if state.game.is_none() {
-        panic!("Game was empty, game cannot be empty if we are running it.");
-    }
+async fn run_game(
+    settings: &Settings,
+    state: &mut State<'_>,
+    font_params: &TextParams,
+) -> ApplicationState {
+    assert!(state.game.is_some());
     let game = state.game.as_mut().unwrap();
-
-    if game.get_remaining_guesses() == 0 {
-        state.game_state = ApplicationState::Loss;
-        return;
-    }
+    assert!(matches!(game.get_game_state(), GameState::Ongoing { .. }));
 
     match handle_input(&mut state.word, settings.word_length).await {
         InputResult::Quit => {
-            state.game_state = ApplicationState::Quit;
-            return;
+            return ApplicationState::Quit;
         }
         InputResult::Entered => {
-            let result = game.submit_guess(state.word.as_str());
-            match result {
-                Ok(Guess { is_correct, .. }) => {
-                    if is_correct {
-                        state.game_state = ApplicationState::Win;
-                    }
-                    state.word.clear();
-                }
-                Err(GuessError::NotInDictionary) => {
-                    state.word.clear();
-                }
-                Err(GuessError::WrongLength(_len)) => {
-                    state.word.clear();
+            match game.submit_guess(state.word.as_str()) {
+                Ok(_) => {}
+                Err(_) => {
+                    println!("ERROR: incorrect word"); // TODO: GUI error message
                 }
             }
+            state.word.clear();
         }
         InputResult::Incomplete => {}
     }
@@ -133,22 +119,26 @@ async fn run_game(settings: &Settings, state: &mut State<'_>, font_params: &Text
     );
 
     draw_letters(game.get_letters(), game.get_total_guesses(), font_params);
+
+    ApplicationState::Game
 }
 
-async fn run_win(settings: &Settings, state: &mut State<'_>, font_params: &TextParams) {
+async fn run_win(
+    settings: &Settings,
+    state: &mut State<'_>,
+    font_params: &TextParams,
+) -> ApplicationState {
     if state.game.is_none() {
         panic!("Game was empty, game cannot be empty if we are running it.");
     }
 
     if is_key_pressed(KeyCode::M) {
-        state.game_state = ApplicationState::Menu;
         get_char_pressed();
-        return;
+        return ApplicationState::Menu;
     }
 
     if is_key_pressed(KeyCode::Escape) {
-        state.game_state = ApplicationState::Quit;
-        return;
+        return ApplicationState::Quit;
     }
 
     clear_background(BLACK);
@@ -158,22 +148,26 @@ async fn run_win(settings: &Settings, state: &mut State<'_>, font_params: &TextP
         state.game.as_ref().unwrap().get_guesses(),
         font_params,
     );
+
+    ApplicationState::Game
 }
 
-async fn run_loss(settings: &Settings, state: &mut State<'_>, font_params: &TextParams) {
+async fn run_loss(
+    settings: &Settings,
+    state: &mut State<'_>,
+    font_params: &TextParams,
+) -> ApplicationState {
     if state.game.is_none() {
         panic!("Game was empty, game cannot be empty if we are running it.");
     }
 
     if is_key_pressed(KeyCode::M) {
-        state.game_state = ApplicationState::Menu;
         get_char_pressed();
-        return;
+        return ApplicationState::Menu;
     }
 
     if is_key_pressed(KeyCode::Escape) {
-        state.game_state = ApplicationState::Quit;
-        return;
+        return ApplicationState::Quit;
     }
 
     clear_background(BLACK);
@@ -184,14 +178,11 @@ async fn run_loss(settings: &Settings, state: &mut State<'_>, font_params: &Text
         &state.game.as_ref().unwrap().get_correct_word(),
         font_params,
     );
+
+    ApplicationState::Game
 }
 
-async fn menu_loop(
-    settings: &mut Settings,
-    dictionary: &mut Dictionary,
-    font_params: &TextParams,
-    text_file: &str,
-) -> bool {
+async fn menu_loop(settings: &mut Settings, font_params: &TextParams) -> ApplicationState {
     let mut state: ApplicationState = ApplicationState::Menu;
     loop {
         if is_key_pressed(KeyCode::N) {
@@ -211,15 +202,8 @@ async fn menu_loop(
 
         draw_menu(settings.attempts, settings.word_length, font_params);
 
-        if state == ApplicationState::Game {
-            if dictionary.get_word_length() != settings.word_length {
-                *dictionary = Dictionary::new(text_file, settings.word_length);
-            }
-            return true;
-        }
-
-        if state == ApplicationState::Quit {
-            return false;
+        if state == ApplicationState::Game || state == ApplicationState::Quit {
+            return state;
         }
 
         next_frame().await
@@ -232,33 +216,23 @@ async fn game_loop(
     font_params: &TextParams,
 ) -> ApplicationState {
     let mut state: State = State {
-        game_state: ApplicationState::Game,
         word: String::new(),
         game: Some(Game::new(settings.attempts, dictionary)),
     };
 
     loop {
-        match state.game_state {
-            ApplicationState::Menu => {
-                break;
-            }
-            ApplicationState::Game => {
-                run_game(settings, &mut state, font_params).await;
-            }
-            ApplicationState::Quit => {
-                break;
-            }
-            ApplicationState::Win => {
-                run_win(settings, &mut state, font_params).await;
-            }
-            ApplicationState::Loss => {
-                run_loss(settings, &mut state, font_params).await;
-            }
+        let application_state = match state.game.as_ref().unwrap().get_game_state() {
+            game::GameState::Ongoing(_) => run_game(settings, &mut state, font_params).await,
+            game::GameState::Win(_) => run_win(settings, &mut state, font_params).await,
+            game::GameState::Lose => run_loss(settings, &mut state, font_params).await,
+        };
+
+        if application_state != ApplicationState::Game {
+            return application_state;
         }
 
         next_frame().await
     }
-    state.game_state
 }
 
 fn window_conf() -> Conf {
@@ -285,13 +259,19 @@ async fn main() {
     let mut dictionary: Dictionary = Dictionary::new(text_file, settings.word_length);
 
     loop {
-        let c = menu_loop(&mut settings, &mut dictionary, &font_params, text_file).await;
-        if !c {
+        let mut application_state = menu_loop(&mut settings, &font_params).await;
+
+        if application_state == ApplicationState::Quit {
             break;
         }
 
-        let r = game_loop(&settings, &dictionary, &font_params).await;
-        if r == ApplicationState::Quit {
+        if dictionary.get_word_length() != settings.word_length {
+            dictionary = Dictionary::new(text_file, settings.word_length);
+        }
+
+        application_state = game_loop(&settings, &dictionary, &font_params).await;
+
+        if application_state == ApplicationState::Quit {
             break;
         }
     }
