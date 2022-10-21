@@ -27,7 +27,6 @@ pub enum GameState {
 
 pub struct Game<'dict> {
     state: State,
-
     dictionary: &'dict dictionary::Dictionary,
 }
 
