@@ -99,7 +99,7 @@ impl<'s, 'd> App<'s> {
 
         match self.handle_input() {
             InputResult::Quit => {
-                return ApplicationState::Quit;
+                return ApplicationState::Menu;
             }
             InputResult::Entered => {
                 match game.submit_guess(self.word.as_str()) {
@@ -119,7 +119,7 @@ impl<'s, 'd> App<'s> {
     }
 
     fn handle_input(&mut self) -> InputResult {
-        if is_key_pressed(KeyCode::Escape) {
+        if is_key_released(KeyCode::Escape) {
             return InputResult::Quit;
         }
 

@@ -1,4 +1,3 @@
-use rand::Rng;
 use std::collections::HashSet;
 
 #[cfg(test)]
@@ -40,7 +39,7 @@ impl Dictionary {
     }
 
     pub fn get_random_word(&self) -> String {
-        let num: usize = rand::thread_rng().gen_range(0..self.wordlist.len());
+        let num: usize = macroquad::rand::gen_range(0, self.wordlist.len());
         self.wordlist[num].clone()
     }
 

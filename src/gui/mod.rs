@@ -55,7 +55,12 @@ impl Graphics {
     pub fn draw_game(&self, settings: &Settings, game: &Game, word: &String) {
         macroquad::window::clear_background(BG_COLOR);
 
-        self.draw_words(settings.word_length, word, game.get_guesses(), settings.attempts);
+        self.draw_words(
+            settings.word_length,
+            word,
+            game.get_guesses(),
+            settings.attempts,
+        );
         self.draw_letters(game.get_letters(), settings.attempts);
     }
 
@@ -98,22 +103,29 @@ impl Graphics {
         draw_text_ex(correct_word, 130.0, start_y, red_text);
     }
 
-    fn draw_words(&self, word_length: u32, current_word: &String, past_words: &Vec<Guess>, attempts: u32) {
+    fn draw_words(
+        &self,
+        word_length: u32,
+        current_word: &String,
+        past_words: &Vec<Guess>,
+        attempts: u32,
+    ) {
         let posx = macroquad::window::screen_width() / 2.0 - (word_length as f32 * 35.0) / 2.0;
-        for (i, guess) in (0_usize..).zip(past_words) {
-            let posy = 120.0 + i as f32 * 80.0;
-            self.draw_guess(guess, posx, posy);
-        }
 
         for i in 0..attempts {
-            let posy = 120.0 + i as f32 * 80.0;
+            let posy = 60.0 + i as f32 * 70.0;
             self.draw_boxes(posx - 7.0, posy - 45.0, word_length);
         }
 
+        for (i, guess) in (0_usize..).zip(past_words) {
+            let posy = 60.0 + i as f32 * 70.0;
+            self.draw_guess(guess, posx, posy);
+        }
+
         let posx = macroquad::window::screen_width() / 2.0 - (word_length as f32 * 35.0) / 2.0;
-        let posy = 120.0 + past_words.len() as f32 * 80.0;
-        self.draw_word(posx, posy, current_word);
+        let posy = 60.0 + past_words.len() as f32 * 70.0;
         self.draw_boxes(posx - 7.0, posy - 45.0, word_length);
+        self.draw_word(posx, posy, current_word);
     }
 
     fn draw_word(&self, x: f32, y: f32, word: &String) {
@@ -124,16 +136,15 @@ impl Graphics {
 
     fn draw_boxes(&self, x: f32, y: f32, number: u32) {
         for i in 0_u32..number {
-            draw_rectangle_lines(
+            draw_rectangle(
                 x + i as f32 * 35.0,
                 y,
-                36.0,
+                32.0,
                 60.0,
-                2.0,
                 Color {
-                    r: 0.4,
-                    g: 0.4,
-                    b: 0.4,
+                    r: 0.15,
+                    g: 0.15,
+                    b: 0.15,
                     a: 1.0,
                 },
             );
@@ -163,7 +174,7 @@ impl Graphics {
         let rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
         let diacritic_rows = ["ěščřžýáíé", "ďťňóúů"];
 
-        let start_y = 160.0 + total_guesses as f32 * 80.0;
+        let start_y = (total_guesses + 1) as f32 * 70.0;
 
         let unused_params = TextParams {
             color: Color::new(1.0, 1.0, 1.0, 1.0),
