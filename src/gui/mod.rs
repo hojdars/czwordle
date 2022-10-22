@@ -88,19 +88,14 @@ impl Graphics {
     pub fn draw_loss(&self, word_length: u32, past_words: &Vec<Guess>, correct_word: &str) {
         macroquad::window::clear_background(BG_COLOR);
 
-        let red_text = TextParams {
-            color: Color::new(1.0, 0.0, 0.0, 1.0),
-            ..self.font
-        };
-
         let posx = macroquad::window::screen_width() / 2.0 - (word_length as f32 * 35.0) / 2.0;
         for (i, guess) in (0_usize..).zip(past_words) {
-            let posy = 120.0 + i as f32 * 80.0;
+            let posy = 60.0 + i as f32 * 70.0;
             self.draw_guess(guess, posx, posy);
         }
-        let start_y = 160.0 + past_words.len() as f32 * 80.0;
 
-        draw_text_ex(correct_word, 130.0, start_y, red_text);
+        let start_y = 60.0 + past_words.len() as f32 * 70.0;
+        self.draw_lose_word(posx, start_y, &correct_word.to_string());
     }
 
     fn draw_words(
@@ -131,6 +126,20 @@ impl Graphics {
     fn draw_word(&self, x: f32, y: f32, word: &String) {
         for (i, c) in (0_usize..word.len()).zip(word.chars()) {
             draw_text_ex(&c.to_string(), x + i as f32 * 35.0, y, self.font);
+        }
+    }
+
+    fn draw_lose_word(&self, x: f32, y: f32, word: &String) {
+        for (i, c) in (0_usize..word.len()).zip(word.chars()) {
+            draw_text_ex(
+                &c.to_string(),
+                x + i as f32 * 35.0,
+                y,
+                TextParams {
+                    color: Color::new(0.9, 0.0, 0.0, 1.0),
+                    ..self.font
+                },
+            );
         }
     }
 
