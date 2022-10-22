@@ -31,7 +31,7 @@ fn window_conf() -> Conf {
     Conf {
         window_title: "czWORDLE".to_owned(),
         fullscreen: false,
-        window_height: 1000,
+        window_height: 800,
         window_width: 700,
         ..Default::default()
     }
@@ -45,6 +45,8 @@ async fn main() {
     );
 
     let mut dictionary: Dictionary = app.make_dictionary();
+
+    macroquad::rand::srand(instant::now() as u64);
 
     loop {
         let mut application_state: ApplicationState;
