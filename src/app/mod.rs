@@ -8,11 +8,7 @@ use crate::dictionary::Dictionary;
 use crate::game::Game;
 use crate::game::GameState;
 
-use crate::gui::draw_letters;
-use crate::gui::draw_loss;
-use crate::gui::draw_menu;
-use crate::gui::draw_win;
-use crate::gui::draw_words;
+use crate::gui::Graphics;
 
 #[derive(PartialEq, Eq)]
 pub enum ApplicationState {
@@ -30,7 +26,7 @@ pub struct Settings {
 pub struct App<'s> {
     pub settings: Settings,
 
-    font: TextParams,
+    gui: Graphics,
     text_file: &'s str,
 
     word: String,
@@ -46,7 +42,7 @@ impl<'s, 'd> App<'s> {
     pub fn new(text_file: &'s str, font: TextParams) -> App<'s> {
         App {
             text_file,
-            font,
+            gui: Graphics::new(font),
             settings: Settings {
                 word_length: 5,
                 attempts: 6,
@@ -67,10 +63,6 @@ impl<'s, 'd> App<'s> {
         Game::new(self.settings.attempts, dictionary)
     }
 
-    pub fn get_font(&self) -> &TextParams {
-        &self.font
-    }
-
     pub fn run_menu(&mut self) -> ApplicationState {
         let mut state: ApplicationState = ApplicationState::Menu;
 
@@ -89,11 +81,7 @@ impl<'s, 'd> App<'s> {
             state = ApplicationState::Quit;
         }
 
-        draw_menu(
-            self.settings.attempts,
-            self.settings.word_length,
-            &self.font,
-        );
+        self.gui.draw_menu(&self.settings);
 
         state
     }
@@ -125,16 +113,7 @@ impl<'s, 'd> App<'s> {
             InputResult::Incomplete => {}
         }
 
-        macroquad::window::clear_background(macroquad::prelude::BLACK);
-
-        draw_words(
-            self.settings.word_length,
-            &self.word,
-            game.get_guesses(),
-            &self.font,
-        );
-
-        draw_letters(game.get_letters(), game.get_total_guesses(), &self.font);
+        self.gui.draw_game(&self.settings, game, &self.word);
 
         ApplicationState::Game
     }
@@ -183,9 +162,8 @@ impl<'s, 'd> App<'s> {
             return ApplicationState::Quit;
         }
 
-        macroquad::window::clear_background(macroquad::prelude::BLACK);
-
-        draw_win(self.settings.word_length, game.get_guesses(), &self.font);
+        self.gui
+            .draw_win(self.settings.word_length, game.get_guesses());
 
         ApplicationState::Game
     }
@@ -200,13 +178,10 @@ impl<'s, 'd> App<'s> {
             return ApplicationState::Quit;
         }
 
-        macroquad::window::clear_background(macroquad::prelude::BLACK);
-
-        draw_loss(
+        self.gui.draw_loss(
             self.settings.word_length,
             game.get_guesses(),
             &game.get_correct_word(),
-            &self.font,
         );
 
         ApplicationState::Game
