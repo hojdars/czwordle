@@ -48,19 +48,21 @@ async fn main() {
 
     macroquad::rand::srand(instant::now() as u64);
 
+    let mut application_state: ApplicationState = ApplicationState::Menu;
+
     loop {
-        let mut application_state: ApplicationState;
+        if application_state != ApplicationState::NewGame {
+            loop {
+                application_state = app.run_menu();
+                match application_state {
+                    ApplicationState::Menu => {}
+                    ApplicationState::Quit => return,
+                    ApplicationState::Game => panic!("this should never happen"),
+                    ApplicationState::NewGame => break,
+                }
 
-        loop {
-            application_state = app.run_menu();
-            match application_state {
-                ApplicationState::Menu => {}
-                ApplicationState::Quit => return,
-                ApplicationState::Game => panic!("this should never happen"),
-                ApplicationState::NewGame => break,
+                next_frame().await;
             }
-
-            next_frame().await;
         }
 
         {
@@ -71,7 +73,7 @@ async fn main() {
                     ApplicationState::Menu => break,
                     ApplicationState::Quit => return,
                     ApplicationState::Game => {}
-                    ApplicationState::NewGame => panic!("this should never happen"),
+                    ApplicationState::NewGame => break,
                 }
 
                 next_frame().await
