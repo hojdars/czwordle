@@ -158,7 +158,13 @@ impl<'s, 'd> App<'s> {
             return ApplicationState::Menu;
         }
 
+        if is_key_pressed(KeyCode::N) {
+            get_char_pressed();
+            return ApplicationState::NewGame;
+        }
+
         if is_key_pressed(KeyCode::Escape) {
+            get_char_pressed();
             return ApplicationState::Quit;
         }
 

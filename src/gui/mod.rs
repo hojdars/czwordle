@@ -69,14 +69,36 @@ impl Graphics {
 
         let posx = macroquad::window::screen_width() / 2.0 - (word_length as f32 * 35.0) / 2.0;
         for (i, guess) in (0_usize..).zip(past_words) {
-            let posy = 120.0 + i as f32 * 80.0;
+            let posy = 60.0 + i as f32 * 70.0;
             self.draw_guess(guess, posx, posy);
         }
-        let posy = 120.0 + (past_words.len() as f32 + 1.0) * 80.0;
+        let posy = 60.0 + (past_words.len() as f32 + 1.0) * 80.0;
         draw_text_ex(
-            "You win. Press M for menu.",
+            "You win!",
             60.0,
             posy,
+            TextParams {
+                font_size: 34,
+                color: Color::new(0.0, 1.0, 0.0, 1.0),
+                ..self.font
+            },
+        );
+
+        draw_text_ex(
+            "[M] for menu",
+            60.0,
+            posy + 70.0,
+            TextParams {
+                font_size: 34,
+                color: Color::new(0.0, 1.0, 0.0, 1.0),
+                ..self.font
+            },
+        );
+
+        draw_text_ex(
+            "[N] for new game",
+            60.0,
+            posy + 2.0 * 70.0,
             TextParams {
                 font_size: 34,
                 color: Color::new(0.0, 1.0, 0.0, 1.0),
