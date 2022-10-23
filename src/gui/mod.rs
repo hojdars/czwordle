@@ -13,6 +13,8 @@ pub struct Graphics {
 const BG_COLOR: Color = Color::new(0.1, 0.1, 0.1, 1.0);
 const FG_COLOR: Color = Color::new(1.0, 1.0, 0.0, 1.0);
 
+const LETTER_SPACING: f32 = 35.0;
+
 impl Graphics {
     pub fn new(font: TextParams) -> Graphics {
         Graphics {
@@ -67,7 +69,8 @@ impl Graphics {
     pub fn draw_win(&self, word_length: u32, past_words: &Vec<Guess>) {
         macroquad::window::clear_background(BG_COLOR);
 
-        let posx = macroquad::window::screen_width() / 2.0 - (word_length as f32 * 35.0) / 2.0;
+        let posx =
+            macroquad::window::screen_width() / 2.0 - (word_length as f32 * LETTER_SPACING) / 2.0;
         for (i, guess) in (0_usize..).zip(past_words) {
             let posy = 60.0 + i as f32 * 70.0;
             self.draw_guess(guess, posx, posy);
@@ -110,7 +113,8 @@ impl Graphics {
     pub fn draw_loss(&self, word_length: u32, past_words: &Vec<Guess>, correct_word: &str) {
         macroquad::window::clear_background(BG_COLOR);
 
-        let posx = macroquad::window::screen_width() / 2.0 - (word_length as f32 * 35.0) / 2.0;
+        let posx =
+            macroquad::window::screen_width() / 2.0 - (word_length as f32 * LETTER_SPACING) / 2.0;
         for (i, guess) in (0_usize..).zip(past_words) {
             let posy = 60.0 + i as f32 * 70.0;
             self.draw_guess(guess, posx, posy);
@@ -127,7 +131,8 @@ impl Graphics {
         past_words: &Vec<Guess>,
         attempts: u32,
     ) {
-        let posx = macroquad::window::screen_width() / 2.0 - (word_length as f32 * 35.0) / 2.0;
+        let posx =
+            macroquad::window::screen_width() / 2.0 - (word_length as f32 * LETTER_SPACING) / 2.0;
 
         for i in 0..attempts {
             let posy = 60.0 + i as f32 * 70.0;
@@ -139,7 +144,8 @@ impl Graphics {
             self.draw_guess(guess, posx, posy);
         }
 
-        let posx = macroquad::window::screen_width() / 2.0 - (word_length as f32 * 35.0) / 2.0;
+        let posx =
+            macroquad::window::screen_width() / 2.0 - (word_length as f32 * LETTER_SPACING) / 2.0;
         let posy = 60.0 + past_words.len() as f32 * 70.0;
         self.draw_boxes(posx - 7.0, posy - 45.0, word_length);
         self.draw_word(posx, posy, current_word);
@@ -147,7 +153,7 @@ impl Graphics {
 
     fn draw_word(&self, x: f32, y: f32, word: &String) {
         for (i, c) in (0_usize..word.len()).zip(word.chars()) {
-            draw_text_ex(&c.to_string(), x + i as f32 * 35.0, y, self.font);
+            draw_text_ex(&c.to_string(), x + i as f32 * LETTER_SPACING, y, self.font);
         }
     }
 
@@ -155,7 +161,7 @@ impl Graphics {
         for (i, c) in (0_usize..word.len()).zip(word.chars()) {
             draw_text_ex(
                 &c.to_string(),
-                x + i as f32 * 35.0,
+                x + i as f32 * LETTER_SPACING,
                 y,
                 TextParams {
                     color: Color::new(0.9, 0.0, 0.0, 1.0),
@@ -168,7 +174,7 @@ impl Graphics {
     fn draw_boxes(&self, x: f32, y: f32, number: u32) {
         for i in 0_u32..number {
             draw_rectangle(
-                x + i as f32 * 35.0,
+                x + i as f32 * LETTER_SPACING,
                 y,
                 32.0,
                 60.0,
@@ -194,7 +200,7 @@ impl Graphics {
 
             draw_text_ex(
                 letter.to_string().as_str(),
-                x + i as f32 * 35.0,
+                x + i as f32 * LETTER_SPACING,
                 y,
                 TextParams { color, ..self.font },
             );
