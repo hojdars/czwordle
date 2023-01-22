@@ -25,6 +25,26 @@ OPTIONS:
 
 A graphical user interface is in the TODO pipeline.
 
+### To build
+
+Follow [macroquad's README](https://github.com/not-fl3/macroquad) to build, using:
+
+```
+rustup target add wasm32-unknown-unknown
+cargo build --target wasm32-unknown-unknown
+```
+
+### To pack for `itch.io`
+
+Create a zip file containing a folder with:
+
+- `data/` - a folder containing the dictionary, see the Dictionary chapter
+- `ttf/` - a folder containing the font(s)
+- `czwordle.wasm` - found in `target/wasm32-unknown-unknown` after build
+- `index.html`
+
+Upload this zip file to itch.io.
+
 ## Dictionary
 
 The program is not provided with a dictionary. It expects a file called `jmena.txt` in the root directory. The file should have the following structure:
