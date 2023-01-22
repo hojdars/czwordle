@@ -24,6 +24,7 @@ async fn load_fonts(path: &str) -> TextParams {
         font_scale: 1.0,
         font_scale_aspect: 1.0,
         color: Color::new(1.0, 1.0, 0.0, 1.0),
+        rotation: 0.0,
     }
 }
 
@@ -39,9 +40,17 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    let mut boxes: Vec<Texture2D> = Vec::new();
+    boxes.push(load_texture("textures/yellow.png").await.unwrap());
+    boxes.push(load_texture("textures/green.png").await.unwrap());
+    boxes.push(load_texture("textures/gray.png").await.unwrap());
+    boxes.push(load_texture("textures/red.png").await.unwrap());
+
     let mut app = App::new(
         std::include_str!("../data/jmena.txt"),
         load_fonts("ttf/NotoSansMono-Regular.ttf").await,
+        load_texture("textures/logo.png").await.unwrap(),
+        boxes,
     );
 
     let mut dictionary: Dictionary = app.make_dictionary();

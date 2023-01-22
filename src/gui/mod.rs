@@ -8,61 +8,70 @@ use super::letters::Letters;
 
 pub struct Graphics {
     font: TextParams,
+    logo: Texture2D,
+    box_textures: Vec<Texture2D>,
 }
 
-const BG_COLOR: Color = Color::new(0.1, 0.1, 0.1, 1.0);
-const FG_COLOR: Color = Color::new(1.0, 1.0, 0.0, 1.0);
+const BG_COLOR: Color = Color::new(0.92, 0.92, 0.91, 1.0);
+const FG_COLOR: Color = Color::new(0.1, 0.1, 0.1, 1.0);
+const CORRECT_COLOR: Color = Color::new(0.11, 0.69, 0.13, 1.0);
+const YELLOW_COLOR: Color = Color::new(0.93, 0.79, 0.16, 1.0);
+const UNUSED_COLOR: Color = Color::new(0.83, 0.83, 0.83, 1.0);
 
 const LETTER_SPACING: f32 = 35.0;
 
 impl Graphics {
-    pub fn new(font: TextParams) -> Graphics {
+    pub fn new(font: TextParams, logo: Texture2D, box_textures: Vec<Texture2D>) -> Graphics {
         Graphics {
             font: TextParams {
                 color: FG_COLOR,
                 ..font
             },
+            logo,
+            box_textures,
         }
     }
 
     pub fn draw_menu(&self, settings: &Settings) {
         macroquad::window::clear_background(BG_COLOR);
 
-        draw_text_ex(
-            "czWORDLE",
-            macroquad::window::screen_width() / 2.0 - 110.0,
-            100.0,
-            TextParams {
-                font_size: 60,
-                ..self.font
-            },
+        let logo_y_start: f32 = screen_height() / 15.0;
+        draw_texture(
+            self.logo,
+            screen_width() / 2. - self.logo.width() / 2.,
+            logo_y_start,
+            WHITE,
         );
 
-        draw_text_ex("[N] for new game", 60.0, 180.0, self.font);
+        let menu_x_start: f32 = screen_width() / 5.;
+        let menu_y_start = logo_y_start + self.logo.height() + 100.;
+        // TODO: Use get_text_center() to align to middle.
+
+        draw_text_ex("[N] for new game", menu_x_start, menu_y_start, self.font);
         draw_text_ex(
             format!("[↑↓] {} attempts", settings.attempts).as_str(),
-            60.0,
-            240.0,
+            menu_x_start,
+            menu_y_start + 60.,
             self.font,
         );
         draw_text_ex(
             format!("[←→] {} word length", settings.word_length).as_str(),
-            60.0,
-            300.0,
+            menu_x_start,
+            menu_y_start + 120.,
             self.font,
         );
-        draw_text_ex("[Esc] to quit", 60.0, 360.0, self.font);
+        draw_text_ex(
+            "[Esc] to quit",
+            menu_x_start,
+            menu_y_start + 180.,
+            self.font,
+        );
     }
 
     pub fn draw_game(&self, settings: &Settings, game: &Game, word: &String) {
         macroquad::window::clear_background(BG_COLOR);
 
-        self.draw_words(
-            settings.word_length,
-            word,
-            game.get_guesses(),
-            settings.attempts,
-        );
+        self.draw_words(settings.word_length, word, game.get_guesses());
         self.draw_letters(game.get_letters(), settings.attempts);
     }
 
@@ -72,28 +81,18 @@ impl Graphics {
         let posx =
             macroquad::window::screen_width() / 2.0 - (word_length as f32 * LETTER_SPACING) / 2.0;
         for (i, guess) in (0_usize..).zip(past_words) {
-            let posy = 60.0 + i as f32 * 70.0;
+            let posy = 60.0 + i as f32 * 60.0;
             self.draw_guess(guess, posx, posy);
         }
-        let posy = 60.0 + (past_words.len() as f32 + 1.0) * 80.0;
-        draw_text_ex(
-            "You win!",
-            60.0,
-            posy,
-            TextParams {
-                font_size: 34,
-                color: Color::new(0.0, 1.0, 0.0, 1.0),
-                ..self.font
-            },
-        );
+        let posy = 70.0 + (past_words.len() as f32 + 1.0) * 60.0;
 
         draw_text_ex(
             "[M] for menu",
             60.0,
-            posy + 70.0,
+            posy,
             TextParams {
                 font_size: 34,
-                color: Color::new(0.0, 1.0, 0.0, 1.0),
+                color: FG_COLOR,
                 ..self.font
             },
         );
@@ -101,10 +100,10 @@ impl Graphics {
         draw_text_ex(
             "[N] for new game",
             60.0,
-            posy + 2.0 * 70.0,
+            posy + 70.0,
             TextParams {
                 font_size: 34,
-                color: Color::new(0.0, 1.0, 0.0, 1.0),
+                color: FG_COLOR,
                 ..self.font
             },
         );
@@ -116,94 +115,105 @@ impl Graphics {
         let posx =
             macroquad::window::screen_width() / 2.0 - (word_length as f32 * LETTER_SPACING) / 2.0;
         for (i, guess) in (0_usize..).zip(past_words) {
-            let posy = 60.0 + i as f32 * 70.0;
+            let posy = 60.0 + i as f32 * 60.0;
             self.draw_guess(guess, posx, posy);
         }
 
-        let start_y = 60.0 + past_words.len() as f32 * 70.0;
+        let start_y = 90.0 + past_words.len() as f32 * 60.0;
         self.draw_lose_word(posx, start_y, &correct_word.to_string());
+
+        draw_text_ex(
+            "[M] for menu",
+            60.0,
+            start_y + 90.0,
+            TextParams {
+                font_size: 34,
+                color: FG_COLOR,
+                ..self.font
+            },
+        );
+
+        draw_text_ex(
+            "[N] for new game",
+            60.0,
+            start_y + 160.0,
+            TextParams {
+                font_size: 34,
+                color: FG_COLOR,
+                ..self.font
+            },
+        );
     }
 
-    fn draw_words(
-        &self,
-        word_length: u32,
-        current_word: &String,
-        past_words: &Vec<Guess>,
-        attempts: u32,
-    ) {
+    fn draw_letter(&self, letter: &str, pos_x: f32, pos_y: f32, texture_index: usize) {
+        assert!(letter.chars().count() == 1);
+        assert!(texture_index < self.box_textures.len());
+
+        let c = get_text_center(
+            letter,
+            Some(self.font.font),
+            self.font.font_size,
+            self.font.font_scale,
+            self.font.rotation,
+        );
+
+        let anchor_y = pos_y + self.box_textures[texture_index].height() * 0.35;
+        draw_texture(
+            self.box_textures[texture_index],
+            pos_x - self.box_textures[texture_index].width() / 2.0,
+            pos_y - self.box_textures[texture_index].height() / 2.0,
+            WHITE,
+        );
+        draw_text_ex(letter, pos_x - c.x, anchor_y, self.font);
+    }
+
+    fn draw_words(&self, word_length: u32, current_word: &String, past_words: &Vec<Guess>) {
         let posx =
             macroquad::window::screen_width() / 2.0 - (word_length as f32 * LETTER_SPACING) / 2.0;
 
-        for i in 0..attempts {
-            let posy = 60.0 + i as f32 * 70.0;
-            self.draw_boxes(posx - 7.0, posy - 45.0, word_length);
-        }
-
         for (i, guess) in (0_usize..).zip(past_words) {
-            let posy = 60.0 + i as f32 * 70.0;
+            let posy = 60.0 + i as f32 * 60.0;
             self.draw_guess(guess, posx, posy);
         }
 
         let posx =
             macroquad::window::screen_width() / 2.0 - (word_length as f32 * LETTER_SPACING) / 2.0;
-        let posy = 60.0 + past_words.len() as f32 * 70.0;
-        self.draw_boxes(posx - 7.0, posy - 45.0, word_length);
+        let posy = 60.0 + past_words.len() as f32 * 60.0;
         self.draw_word(posx, posy, current_word);
     }
 
     fn draw_word(&self, x: f32, y: f32, word: &String) {
+        let spacing: f32 = self.box_textures[0].width() * 1.1;
         for (i, c) in (0_usize..word.len()).zip(word.chars()) {
-            draw_text_ex(&c.to_string(), x + i as f32 * LETTER_SPACING, y, self.font);
+            self.draw_letter(&c.to_string(), x + i as f32 * spacing, y, 2);
         }
     }
 
     fn draw_lose_word(&self, x: f32, y: f32, word: &String) {
+        let spacing: f32 = self.box_textures[0].width() * 1.1;
         for (i, c) in (0_usize..word.len()).zip(word.chars()) {
-            draw_text_ex(
-                &c.to_string(),
-                x + i as f32 * LETTER_SPACING,
-                y,
-                TextParams {
-                    color: Color::new(0.9, 0.0, 0.0, 1.0),
-                    ..self.font
-                },
-            );
-        }
-    }
-
-    fn draw_boxes(&self, x: f32, y: f32, number: u32) {
-        for i in 0_u32..number {
-            draw_rectangle(
-                x + i as f32 * LETTER_SPACING,
-                y,
-                32.0,
-                60.0,
-                Color {
-                    r: 0.15,
-                    g: 0.15,
-                    b: 0.15,
-                    a: 1.0,
-                },
-            );
+            self.draw_letter(&c.to_string(), x + i as f32 * spacing, y, 3);
         }
     }
 
     fn draw_guess(&self, guess: &Guess, x: f32, y: f32) {
+        let spacing: f32 = self.box_textures[0].width() * 1.1;
+
         for (i, letter) in (0_u32..).zip(guess.word.chars()) {
-            let mut color = Color::new(1.0, 1.0, 1.0, 1.0);
+            let mut texture_index: usize = 2;
 
             if guess.green_positions.contains(&i) {
-                color = Color::new(0.0, 1.0, 0.0, 1.0);
+                texture_index = 1;
             } else if guess.yellow_positions.contains(&i) {
-                color = Color::new(1.0, 1.0, 0.0, 1.0);
+                texture_index = 0;
             }
 
-            draw_text_ex(
+            self.draw_letter(
                 letter.to_string().as_str(),
-                x + i as f32 * LETTER_SPACING,
+                x + i as f32 * spacing,
                 y,
-                TextParams { color, ..self.font },
-            );
+                texture_index,
+            )
         }
     }
 
@@ -214,19 +224,19 @@ impl Graphics {
         let start_y = (total_guesses + 1) as f32 * 70.0;
 
         let unused_params = TextParams {
-            color: Color::new(1.0, 1.0, 1.0, 1.0),
+            color: FG_COLOR,
             ..self.font
         };
         let used_params = TextParams {
-            color: Color::new(0.3, 0.3, 0.3, 1.0),
+            color: UNUSED_COLOR,
             ..self.font
         };
         let yellow_params = TextParams {
-            color: Color::new(1.0, 1.0, 0.0, 1.0),
+            color: YELLOW_COLOR,
             ..self.font
         };
         let green_params = TextParams {
-            color: Color::new(0.0, 1.0, 0.0, 1.0),
+            color: CORRECT_COLOR,
             ..self.font
         };
 

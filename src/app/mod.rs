@@ -1,6 +1,7 @@
 use macroquad::{
     prelude::{get_char_pressed, is_key_pressed, is_key_released, KeyCode},
     text::TextParams,
+    texture::Texture2D,
 };
 
 use crate::dictionary::Dictionary;
@@ -39,10 +40,15 @@ enum InputResult {
 }
 
 impl<'s, 'd> App<'s> {
-    pub fn new(text_file: &'s str, font: TextParams) -> App<'s> {
+    pub fn new(
+        text_file: &'s str,
+        font: TextParams,
+        logo: Texture2D,
+        box_textures: Vec<Texture2D>,
+    ) -> App<'s> {
         App {
             text_file,
-            gui: Graphics::new(font),
+            gui: Graphics::new(font, logo, box_textures),
             settings: Settings {
                 word_length: 5,
                 attempts: 6,
@@ -178,6 +184,11 @@ impl<'s, 'd> App<'s> {
         if is_key_pressed(KeyCode::M) {
             get_char_pressed();
             return ApplicationState::Menu;
+        }
+
+        if is_key_pressed(KeyCode::N) {
+            get_char_pressed();
+            return ApplicationState::NewGame;
         }
 
         if is_key_pressed(KeyCode::Escape) {
