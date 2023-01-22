@@ -13,7 +13,7 @@ pub struct Graphics {
 }
 
 const BG_COLOR: Color = Color::new(0.92, 0.92, 0.91, 1.0);
-const FG_COLOR: Color = Color::new(0.1, 0.1, 0.1, 1.0);
+const FG_COLOR: Color = Color::new(0.2, 0.2, 0.2, 1.0);
 const CORRECT_COLOR: Color = Color::new(0.11, 0.69, 0.13, 1.0);
 const YELLOW_COLOR: Color = Color::new(0.93, 0.79, 0.16, 1.0);
 const UNUSED_COLOR: Color = Color::new(0.83, 0.83, 0.83, 1.0);
@@ -43,29 +43,18 @@ impl Graphics {
             WHITE,
         );
 
-        let menu_x_start: f32 = screen_width() / 5.;
         let menu_y_start = logo_y_start + self.logo.height() + 100.;
-        // TODO: Use get_text_center() to align to middle.
 
-        draw_text_ex("[N] for new game", menu_x_start, menu_y_start, self.font);
-        draw_text_ex(
+        self.draw_centered_text("[N] for new game", menu_y_start);
+        self.draw_centered_text(
             format!("[↑↓] {} attempts", settings.attempts).as_str(),
-            menu_x_start,
             menu_y_start + 60.,
-            self.font,
         );
-        draw_text_ex(
+        self.draw_centered_text(
             format!("[←→] {} word length", settings.word_length).as_str(),
-            menu_x_start,
             menu_y_start + 120.,
-            self.font,
         );
-        draw_text_ex(
-            "[Esc] to quit",
-            menu_x_start,
-            menu_y_start + 180.,
-            self.font,
-        );
+        self.draw_centered_text("[Esc] to quit", menu_y_start + 180.);
     }
 
     pub fn draw_game(&self, settings: &Settings, game: &Game, word: &String) {
@@ -139,6 +128,26 @@ impl Graphics {
             start_y + 160.0,
             TextParams {
                 font_size: 34,
+                color: FG_COLOR,
+                ..self.font
+            },
+        );
+    }
+
+    fn draw_centered_text(&self, text: &str, pos_y: f32) {
+        let dimensions: TextDimensions = measure_text(
+            text,
+            Some(self.font.font),
+            self.font.font_size,
+            self.font.font_scale,
+        );
+
+        let pos_x: f32 = screen_width() / 2.0 - dimensions.width / 2.0;
+        draw_text_ex(
+            text,
+            pos_x,
+            pos_y,
+            TextParams {
                 color: FG_COLOR,
                 ..self.font
             },
