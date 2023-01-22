@@ -9,7 +9,7 @@ use crate::dictionary::Dictionary;
 use crate::game::Game;
 use crate::game::GameState;
 
-use crate::gui::Graphics;
+use crate::gui::graphics::Graphics;
 
 #[derive(PartialEq, Eq)]
 pub enum ApplicationState {
