@@ -1,12 +1,12 @@
 # čwordle _[czwordle]_
 
 <p align="center">
-  <img width="350" src="data/logo.png">
+  <img width="350" src="textures/logo.png">
 </p>
 
 A Czech port of the popular word game [wordle](https://www.powerlanguage.co.uk/wordle/).
 
-Can be played [online in browser](https://mamoot.itch.io/czwordle).
+Can be played [online in the browser](https://mamoot.itch.io/czwordle).
 
 ## Dictionary
 
