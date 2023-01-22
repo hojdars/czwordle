@@ -76,6 +76,7 @@ async fn main() {
 
         {
             let mut game: Game = app.make_game(&mut dictionary);
+            println!("{}", game.get_correct_word());
             loop {
                 application_state = app.run_game(&mut game);
                 match application_state {
