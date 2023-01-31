@@ -5,9 +5,9 @@ use crate::game::Game;
 use crate::game::Guess;
 use crate::letters::Letters;
 
-const BG_COLOR: Color = Color::new(0.92, 0.92, 0.91, 1.0);
-const FG_COLOR: Color = Color::new(0.2, 0.2, 0.2, 1.0);
-const CORRECT_COLOR: Color = Color::new(0.11, 0.69, 0.13, 1.0);
+pub const BG_COLOR: Color = Color::new(0.92, 0.92, 0.91, 1.0);
+pub const FG_COLOR: Color = Color::new(0.2, 0.2, 0.2, 1.0);
+pub const CORRECT_COLOR: Color = Color::new(0.11, 0.69, 0.13, 1.0);
 const YELLOW_COLOR: Color = Color::new(0.93, 0.79, 0.16, 1.0);
 const UNUSED_COLOR: Color = Color::new(0.83, 0.83, 0.83, 1.0);
 
@@ -29,7 +29,7 @@ impl Graphics {
         }
     }
 
-    pub fn draw_menu(&self, settings: &Settings) {
+    pub fn draw_menu_header(&self) -> f32 {
         macroquad::window::clear_background(BG_COLOR);
 
         let logo_y_start: f32 = screen_height() / 15.0;
@@ -41,17 +41,7 @@ impl Graphics {
         );
 
         let menu_y_start = logo_y_start + self.logo.height() + 100.;
-
-        self.draw_centered_text("[N] for new game", menu_y_start);
-        self.draw_centered_text(
-            format!("[↑↓] {} attempts", settings.attempts).as_str(),
-            menu_y_start + 60.,
-        );
-        self.draw_centered_text(
-            format!("[←→] {} word length", settings.word_length).as_str(),
-            menu_y_start + 120.,
-        );
-        self.draw_centered_text("[Esc] to quit", menu_y_start + 180.);
+        menu_y_start
     }
 
     pub fn draw_game(&self, settings: &Settings, game: &Game, word: &String) {
@@ -207,7 +197,7 @@ impl Graphics {
         }
     }
 
-    fn draw_centered_text(&self, text: &str, pos_y: f32) {
+    pub fn draw_centered_text(&self, text: &str, pos_y: f32, color: Color) {
         let dimensions: TextDimensions = measure_text(
             text,
             Some(self.font.font),
@@ -221,7 +211,7 @@ impl Graphics {
             pos_x,
             pos_y,
             TextParams {
-                color: FG_COLOR,
+                color: color,
                 ..self.font
             },
         );

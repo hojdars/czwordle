@@ -10,8 +10,9 @@ use crate::game::Game;
 use crate::game::GameState;
 
 use crate::gui::graphics::Graphics;
+use crate::gui::menu::Menu;
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug, Copy, Clone)]
 pub enum ApplicationState {
     Menu,
     NewGame,
@@ -19,6 +20,13 @@ pub enum ApplicationState {
     Quit,
 }
 
+#[derive(Debug, Copy, Clone)]
+pub struct MainMenuData {
+    pub state: ApplicationState,
+    pub settings: Settings,
+}
+
+#[derive(Debug, Copy, Clone)]
 pub struct Settings {
     pub word_length: u32,
     pub attempts: u32,
@@ -69,27 +77,10 @@ impl<'s, 'd> App<'s> {
         Game::new(self.settings.attempts, dictionary)
     }
 
-    pub fn run_menu(&mut self) -> ApplicationState {
-        let mut state: ApplicationState = ApplicationState::Menu;
+    pub fn run_menu(&mut self, menu: &mut Menu<MainMenuData>) -> ApplicationState {
+        let y_start: f32 = self.gui.draw_menu_header();
 
-        if is_key_pressed(KeyCode::N) {
-            state = ApplicationState::NewGame;
-            while get_char_pressed().is_some() {}
-        } else if is_key_released(KeyCode::Up) {
-            self.settings.attempts += 1;
-        } else if is_key_released(KeyCode::Down) && self.settings.attempts > 1 {
-            self.settings.attempts -= 1;
-        } else if is_key_released(KeyCode::Left) && self.settings.word_length > 2 {
-            self.settings.word_length -= 1;
-        } else if is_key_released(KeyCode::Right) && self.settings.word_length < 8 {
-            self.settings.word_length += 1;
-        } else if is_key_pressed(KeyCode::Escape) {
-            state = ApplicationState::Quit;
-        }
-
-        self.gui.draw_menu(&self.settings);
-
-        state
+        menu.run(y_start, &mut self.gui).state
     }
 
     pub fn run_game(&mut self, game: &mut Game) -> ApplicationState {
