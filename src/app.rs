@@ -47,7 +47,7 @@ enum InputResult {
     Quit,
 }
 
-impl<'s, 'd> App<'s> {
+impl<'s, 'd, 'm> App<'s> {
     pub fn new(
         text_file: &'s str,
         font: TextParams,
@@ -69,26 +69,101 @@ impl<'s, 'd> App<'s> {
         Dictionary::new(self.text_file, self.settings.word_length)
     }
 
-    pub fn make_game(&self, dictionary: &'d mut Dictionary) -> Game<'d> {
+    pub async fn run_menu_loop(&mut self) -> ApplicationState {
+        let mut main_menu = App::make_main_menu(self.settings.attempts, self.settings.word_length);
+        loop {
+            let y_start: f32 = self.gui.draw_menu_header();
+            let result = main_menu.run(y_start, &mut self.gui);
+            self.settings = result.settings;
+
+            if result.state != ApplicationState::Menu {
+                return result.state;
+            }
+
+            macroquad::window::next_frame().await;
+        }
+    }
+
+    pub async fn run_game_loop(&mut self, dictionary: &'d mut Dictionary) -> ApplicationState {
+        let mut game: Game = self.make_game(dictionary);
+        println!("{}", game.get_correct_word());
+
+        loop {
+            let application_state = {
+                match game.get_game_state() {
+                    GameState::Ongoing(_) => self.run_game_frame(&mut game),
+                    GameState::Win(_) => self.run_win_frame(&mut game),
+                    GameState::Lose => self.run_loss_frame(&mut game),
+                }
+            };
+
+            if application_state != ApplicationState::Game {
+                return application_state;
+            }
+
+            macroquad::window::next_frame().await;
+        }
+    }
+
+    fn make_main_menu(attempts: u32, word_length: u32) -> Menu<'m, MainMenuData> {
+        let item_callback = |data: &mut MainMenuData, items: &Vec<String>| -> Vec<String> {
+            let mut retval: Vec<String> = Vec::new();
+            retval.push(items[0].to_string());
+            retval.push(format!("{} {}", data.settings.attempts, items[1]));
+            retval.push(format!("{} {}", data.settings.word_length, items[2]));
+            retval.push(items[3].to_string());
+            retval
+        };
+
+        let callback = |position: &mut u32, data: &mut MainMenuData| {
+            if is_key_pressed(KeyCode::Enter) {
+                match *position {
+                    0 => data.state = ApplicationState::NewGame,
+                    3 => data.state = ApplicationState::Quit,
+                    _ => {}
+                }
+            } else if is_key_pressed(KeyCode::Escape) {
+                data.state = ApplicationState::Quit;
+            } else if is_key_pressed(KeyCode::Left) {
+                match *position {
+                    1 => data.settings.attempts -= 1,
+                    2 => data.settings.word_length -= 1,
+                    _ => {}
+                }
+            } else if is_key_pressed(KeyCode::Right) {
+                match *position {
+                    1 => data.settings.attempts += 1,
+                    2 => data.settings.word_length += 1,
+                    _ => {}
+                }
+            }
+        };
+
+        Menu::new_with_items_callback(
+            Vec::from([
+                "NEW GAME".to_string(),
+                "ATTEMPTS".to_string(),
+                "WORD LENGTH".to_string(),
+                "QUIT".to_string(),
+            ]),
+            MainMenuData {
+                state: ApplicationState::Menu,
+                settings: Settings {
+                    attempts: attempts,
+                    word_length: word_length,
+                },
+            },
+            callback,
+            item_callback,
+        )
+    }
+
+    fn make_game(&self, dictionary: &'d mut Dictionary) -> Game<'d> {
         if dictionary.get_word_length() != self.settings.word_length {
             *dictionary = Dictionary::new(self.text_file, self.settings.word_length)
         }
 
         Game::new(self.settings.attempts, dictionary)
-    }
-
-    pub fn run_menu(&mut self, menu: &mut Menu<MainMenuData>) -> ApplicationState {
-        let y_start: f32 = self.gui.draw_menu_header();
-
-        menu.run(y_start, &mut self.gui).state
-    }
-
-    pub fn run_game(&mut self, game: &mut Game) -> ApplicationState {
-        match game.get_game_state() {
-            GameState::Ongoing(_) => self.run_game_frame(game),
-            GameState::Win(_) => self.run_win_frame(game),
-            GameState::Lose => self.run_loss_frame(game),
-        }
     }
 
     fn run_game_frame(&mut self, game: &mut Game) -> ApplicationState {
