@@ -51,7 +51,7 @@ impl Graphics {
         self.draw_letters(game.get_letters(), settings.attempts);
     }
 
-    pub fn draw_win(&self, word_length: u32, past_words: &Vec<Guess>) {
+    pub fn draw_win(&self, word_length: u32, past_words: &Vec<Guess>) -> f32 {
         macroquad::window::clear_background(BG_COLOR);
 
         let spacing: f32 = self.box_textures[0].width() * 1.1;
@@ -60,32 +60,11 @@ impl Graphics {
             let posy = 60.0 + i as f32 * 60.0;
             self.draw_guess(guess, posx, posy);
         }
-        let posy = 70.0 + (past_words.len() as f32 + 1.0) * 60.0;
 
-        draw_text_ex(
-            "[M] for menu",
-            60.0,
-            posy,
-            TextParams {
-                font_size: 34,
-                color: FG_COLOR,
-                ..self.font
-            },
-        );
-
-        draw_text_ex(
-            "[N] for new game",
-            60.0,
-            posy + 70.0,
-            TextParams {
-                font_size: 34,
-                color: FG_COLOR,
-                ..self.font
-            },
-        );
+        70.0 + (past_words.len() as f32 + 1.0) * 60.0
     }
 
-    pub fn draw_loss(&self, word_length: u32, past_words: &Vec<Guess>, correct_word: &str) {
+    pub fn draw_loss(&self, word_length: u32, past_words: &Vec<Guess>, correct_word: &str) -> f32 {
         macroquad::window::clear_background(BG_COLOR);
 
         let spacing: f32 = self.box_textures[0].width() * 1.1;
@@ -98,27 +77,7 @@ impl Graphics {
         let start_y = 90.0 + past_words.len() as f32 * 60.0;
         self.draw_lose_word(posx, start_y, &correct_word.to_string());
 
-        draw_text_ex(
-            "[M] for menu",
-            60.0,
-            start_y + 90.0,
-            TextParams {
-                font_size: 34,
-                color: FG_COLOR,
-                ..self.font
-            },
-        );
-
-        draw_text_ex(
-            "[N] for new game",
-            60.0,
-            start_y + 160.0,
-            TextParams {
-                font_size: 34,
-                color: FG_COLOR,
-                ..self.font
-            },
-        );
+        start_y + 60.0
     }
 
     pub fn draw_letters(&self, letters: &Letters, total_guesses: u32) {
