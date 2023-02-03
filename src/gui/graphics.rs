@@ -54,30 +54,28 @@ impl Graphics {
     pub fn draw_win(&self, word_length: u32, past_words: &Vec<Guess>) -> f32 {
         macroquad::window::clear_background(BG_COLOR);
 
-        let spacing: f32 = self.box_textures[0].width() * 1.1;
-        let posx = macroquad::window::screen_width() / 2.0 - (word_length as f32 * spacing) / 2.0;
+        let pos_x: f32 = self.get_center_for_boxes(word_length);
         for (i, guess) in (0_usize..).zip(past_words) {
             let posy = 60.0 + i as f32 * 60.0;
-            self.draw_guess(guess, posx, posy);
+            self.draw_guess(guess, pos_x, posy);
         }
 
-        70.0 + (past_words.len() as f32 + 1.0) * 60.0
+        80.0 + (past_words.len() as f32 + 1.0) * 60.0
     }
 
     pub fn draw_loss(&self, word_length: u32, past_words: &Vec<Guess>, correct_word: &str) -> f32 {
         macroquad::window::clear_background(BG_COLOR);
 
-        let spacing: f32 = self.box_textures[0].width() * 1.1;
-        let posx = macroquad::window::screen_width() / 2.0 - (word_length as f32 * spacing) / 2.0;
+        let pos_x: f32 = self.get_center_for_boxes(word_length);
         for (i, guess) in (0_usize..).zip(past_words) {
             let posy = 60.0 + i as f32 * 60.0;
-            self.draw_guess(guess, posx, posy);
+            self.draw_guess(guess, pos_x, posy);
         }
 
         let start_y = 90.0 + past_words.len() as f32 * 60.0;
-        self.draw_lose_word(posx, start_y, &correct_word.to_string());
+        self.draw_lose_word(pos_x, start_y, &correct_word.to_string());
 
-        start_y + 60.0
+        start_y + 80.0 + 60.0
     }
 
     pub fn draw_letters(&self, letters: &Letters, total_guesses: u32) {
@@ -199,15 +197,12 @@ impl Graphics {
     }
 
     fn draw_words(&self, word_length: u32, current_word: &String, past_words: &Vec<Guess>) {
-        let spacing: f32 = self.box_textures[0].width() * 1.1;
-        let posx = macroquad::window::screen_width() / 2.0 - (word_length as f32 * spacing) / 2.0;
-
+        let posx = self.get_center_for_boxes(word_length);
         for (i, guess) in (0_usize..).zip(past_words) {
             let posy = 60.0 + i as f32 * 60.0;
             self.draw_guess(guess, posx, posy);
         }
 
-        let posx = macroquad::window::screen_width() / 2.0 - (word_length as f32 * spacing) / 2.0;
         let posy = 60.0 + past_words.len() as f32 * 60.0;
         self.draw_word(posx, posy, current_word);
     }
@@ -245,5 +240,12 @@ impl Graphics {
                 texture_index,
             )
         }
+    }
+
+    fn get_center_for_boxes(&self, word_length: u32) -> f32 {
+        let spacing: f32 = self.box_textures[0].width() * 1.1;
+        (screen_width() / 2.0)
+            - (((word_length - 1) as f32 * spacing + self.box_textures[0].width()) / 2.0)
+            + self.box_textures[0].width() / 2.0
     }
 }
