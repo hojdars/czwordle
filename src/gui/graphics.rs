@@ -35,13 +35,12 @@ impl Graphics {
         let logo_y_start: f32 = screen_height() / 15.0;
         draw_texture(
             self.logo,
-            screen_width() / 2. - self.logo.width() / 2.,
+            screen_width() / 2.0 - self.logo.width() / 2.0,
             logo_y_start,
             WHITE,
         );
 
-        let menu_y_start = logo_y_start + self.logo.height() + 100.;
-        menu_y_start
+        logo_y_start + self.logo.height() + 100.0
     }
 
     pub fn draw_game(&self, settings: &Settings, game: &Game, word: &String) {
@@ -163,15 +162,7 @@ impl Graphics {
         );
 
         let pos_x: f32 = screen_width() / 2.0 - dimensions.width / 2.0;
-        draw_text_ex(
-            text,
-            pos_x,
-            pos_y,
-            TextParams {
-                color: color,
-                ..self.font
-            },
-        );
+        draw_text_ex(text, pos_x, pos_y, TextParams { color, ..self.font });
     }
 
     fn draw_letter(&self, letter: &str, pos_x: f32, pos_y: f32, texture_index: usize) {

@@ -1,6 +1,5 @@
 use std::panic;
 
-use instant::Duration;
 use macroquad::prelude::*;
 
 mod app;
@@ -42,7 +41,6 @@ fn window_conf() -> Conf {
 
 /*
 TODO before release:
- * Create an endgame menu in App::run_game_loop(), pass it to run_win and run_lose.
  * Fix 'cargo clippy' issues.
  * Rename 'jmena.txt'.
  * Go through the code and refactor.
@@ -50,7 +48,6 @@ TODO before release:
 
 /*
 Issues for future versions (make GitHub issues):
- * Center input boxes during game
  * Create a GitHub pipeline to build the project and running tests.
  * GUI error message for incorrect words
  * Scrolling if too many attempts are configured.
