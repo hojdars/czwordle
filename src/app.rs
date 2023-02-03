@@ -87,8 +87,6 @@ impl<'s, 'd, 'm, 'n> App<'s> {
 
     pub async fn run_game_loop(&mut self, dictionary: &'d mut Dictionary) -> ApplicationState {
         let mut game: Game = self.make_game(dictionary);
-        println!("{}", game.get_correct_word());
-
         let mut game_over_menu = App::make_game_over_menu();
 
         loop {

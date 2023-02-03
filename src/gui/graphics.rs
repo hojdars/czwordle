@@ -8,6 +8,7 @@ use crate::letters::Letters;
 pub const BG_COLOR: Color = Color::new(0.92, 0.92, 0.91, 1.0);
 pub const FG_COLOR: Color = Color::new(0.2, 0.2, 0.2, 1.0);
 pub const CORRECT_COLOR: Color = Color::new(0.11, 0.69, 0.13, 1.0);
+
 const YELLOW_COLOR: Color = Color::new(0.93, 0.79, 0.16, 1.0);
 const UNUSED_COLOR: Color = Color::new(0.83, 0.83, 0.83, 1.0);
 
@@ -55,8 +56,8 @@ impl Graphics {
 
         let pos_x: f32 = self.get_center_for_boxes(word_length);
         for (i, guess) in (0_usize..).zip(past_words) {
-            let posy = 60.0 + i as f32 * 60.0;
-            self.draw_guess(guess, pos_x, posy);
+            let pos_y = 60.0 + i as f32 * 60.0;
+            self.draw_guess(guess, pos_x, pos_y);
         }
 
         80.0 + (past_words.len() as f32 + 1.0) * 60.0
@@ -67,8 +68,8 @@ impl Graphics {
 
         let pos_x: f32 = self.get_center_for_boxes(word_length);
         for (i, guess) in (0_usize..).zip(past_words) {
-            let posy = 60.0 + i as f32 * 60.0;
-            self.draw_guess(guess, pos_x, posy);
+            let pos_y = 60.0 + i as f32 * 60.0;
+            self.draw_guess(guess, pos_x, pos_y);
         }
 
         let start_y = 90.0 + past_words.len() as f32 * 60.0;
@@ -188,14 +189,14 @@ impl Graphics {
     }
 
     fn draw_words(&self, word_length: u32, current_word: &String, past_words: &Vec<Guess>) {
-        let posx = self.get_center_for_boxes(word_length);
+        let pos_x = self.get_center_for_boxes(word_length);
         for (i, guess) in (0_usize..).zip(past_words) {
-            let posy = 60.0 + i as f32 * 60.0;
-            self.draw_guess(guess, posx, posy);
+            let pos_y = 60.0 + i as f32 * 60.0;
+            self.draw_guess(guess, pos_x, pos_y);
         }
 
-        let posy = 60.0 + past_words.len() as f32 * 60.0;
-        self.draw_word(posx, posy, current_word);
+        let pos_y = 60.0 + past_words.len() as f32 * 60.0;
+        self.draw_word(pos_x, pos_y, current_word);
     }
 
     fn draw_word(&self, x: f32, y: f32, word: &String) {
