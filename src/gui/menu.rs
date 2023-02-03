@@ -40,10 +40,16 @@ impl<'a, T: std::fmt::Debug + Copy> Menu<'a, T> {
 
     pub fn run(&mut self, y_start: f32, graphics: &mut Graphics) -> T {
         if is_key_pressed(KeyCode::Down) {
+            if self.position == (self.items.len() - 1) as u32 {
+                self.position = 0;
+            } else {
             self.position = cmp::min(self.position + 1, (self.items.len() - 1) as u32);
+            }
         } else if is_key_pressed(KeyCode::Up) {
             if self.position > 0 {
                 self.position = cmp::max(0, self.position - 1);
+            } else {
+                self.position = (self.items.len() - 1) as u32;
             }
         }
 
