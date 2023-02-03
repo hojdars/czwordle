@@ -4,11 +4,14 @@ use std::cmp;
 use crate::gui::graphics;
 use crate::gui::graphics::Graphics;
 
+type InputCallback<'a, T> = Box<dyn FnMut(&mut u32, &mut T) + 'a>;
+type ItemsCallback<'a, T> = Option<Box<dyn FnMut(&mut T, &Vec<String>) -> Vec<String> + 'a>>;
+
 pub struct Menu<'a, T: std::fmt::Debug + Copy> {
     items: Vec<String>,
     data: T,
-    callback: Box<dyn FnMut(&mut u32, &mut T) + 'a>,
-    items_callback: Option<Box<dyn FnMut(&mut T, &Vec<String>) -> Vec<String> + 'a>>,
+    callback: InputCallback<'a, T>,
+    items_callback: ItemsCallback<'a, T>,
     position: u32,
 }
 
@@ -43,7 +46,7 @@ impl<'a, T: std::fmt::Debug + Copy> Menu<'a, T> {
             if self.position == (self.items.len() - 1) as u32 {
                 self.position = 0;
             } else {
-            self.position = cmp::min(self.position + 1, (self.items.len() - 1) as u32);
+                self.position = cmp::min(self.position + 1, (self.items.len() - 1) as u32);
             }
         } else if is_key_pressed(KeyCode::Up) {
             if self.position > 0 {
@@ -66,9 +69,8 @@ impl<'a, T: std::fmt::Debug + Copy> Menu<'a, T> {
         self.data
     }
 
-    fn draw(&self, items: &Vec<String>, y_start: f32, graphics: &mut Graphics) {
-        let mut num: u32 = 0;
-        for item in items {
+    fn draw(&self, items: &[String], y_start: f32, graphics: &mut Graphics) {
+        for (num, item) in (0_u32..).zip(items.iter()) {
             let mut color: Color = graphics::FG_COLOR;
 
             if self.position == num {
@@ -76,7 +78,6 @@ impl<'a, T: std::fmt::Debug + Copy> Menu<'a, T> {
             }
 
             graphics.draw_centered_text(item.as_str(), y_start + 60.0 * num as f32, color);
-            num += 1;
         }
     }
 }

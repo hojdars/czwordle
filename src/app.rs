@@ -151,8 +151,8 @@ impl<'s, 'd, 'm, 'n> App<'s> {
             MainMenuData {
                 state: ApplicationState::Menu,
                 settings: Settings {
-                    attempts: attempts,
-                    word_length: word_length,
+                    attempts,
+                    word_length,
                 },
             },
             callback,
