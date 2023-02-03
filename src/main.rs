@@ -39,20 +39,6 @@ fn window_conf() -> Conf {
     }
 }
 
-/*
-TODO before release:
- * Fix 'cargo clippy' issues.
- * Rename 'jmena.txt'.
- * Go through the code and refactor.
-*/
-
-/*
-Issues for future versions (make GitHub issues):
- * Create a GitHub pipeline to build the project and running tests.
- * GUI error message for incorrect words
- * Scrolling if too many attempts are configured.
-*/
-
 #[macroquad::main(window_conf)]
 async fn main() {
     let mut boxes: Vec<Texture2D> = Vec::new();
@@ -62,7 +48,7 @@ async fn main() {
     boxes.push(load_texture("textures/red.png").await.unwrap());
 
     let mut app = App::new(
-        std::include_str!("../data/jmena.txt"),
+        std::include_str!("../data/dictionary.txt"),
         load_fonts("ttf/NotoSansMono-Regular.ttf").await,
         load_texture("textures/logo.png").await.unwrap(),
         boxes,
@@ -78,10 +64,9 @@ async fn main() {
         if application_state != ApplicationState::NewGame {
             let result: ApplicationState = app.run_menu_loop().await;
             match result {
-                ApplicationState::Menu => panic!("this should never happen"),
                 ApplicationState::Quit => return,
-                ApplicationState::Game => panic!("this should never happen"),
                 ApplicationState::NewGame => {}
+                _ => panic!("this should never happen"),
             }
         }
 

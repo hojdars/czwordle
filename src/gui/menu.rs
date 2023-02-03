@@ -16,11 +16,15 @@ pub struct Menu<'a, T: std::fmt::Debug + Copy> {
 }
 
 impl<'a, T: std::fmt::Debug + Copy> Menu<'a, T> {
-    pub fn new(items: Vec<String>, data: T, cb: impl FnMut(&mut u32, &mut T) + 'a) -> Menu<'a, T> {
+    pub fn new(
+        items: Vec<String>,
+        data: T,
+        callback: impl FnMut(&mut u32, &mut T) + 'a,
+    ) -> Menu<'a, T> {
         Menu {
             items,
             data,
-            callback: Box::new(cb),
+            callback: Box::new(callback),
             items_callback: None,
             position: 0,
         }
@@ -29,14 +33,14 @@ impl<'a, T: std::fmt::Debug + Copy> Menu<'a, T> {
     pub fn new_with_items_callback(
         items: Vec<String>,
         data: T,
-        cb: impl FnMut(&mut u32, &mut T) + 'a,
-        items_cb: impl FnMut(&mut T, &Vec<String>) -> Vec<String> + 'a,
+        callback: impl FnMut(&mut u32, &mut T) + 'a,
+        items_callback: impl FnMut(&mut T, &Vec<String>) -> Vec<String> + 'a,
     ) -> Menu<'a, T> {
         Menu {
             items,
             data,
-            callback: Box::new(cb),
-            items_callback: Some(Box::new(items_cb)),
+            callback: Box::new(callback),
+            items_callback: Some(Box::new(items_callback)),
             position: 0,
         }
     }
