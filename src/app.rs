@@ -47,7 +47,7 @@ enum InputResult {
     Quit,
 }
 
-impl<'s, 'd, 'm> App<'s> {
+impl<'s, 'd, 'm, 'n> App<'s> {
     pub fn new(
         text_file: &'s str,
         font: TextParams,
@@ -76,11 +76,12 @@ impl<'s, 'd, 'm> App<'s> {
             let result = main_menu.run(y_start, &mut self.gui);
             self.settings = result.settings;
 
+            macroquad::window::next_frame().await;
+
             if result.state != ApplicationState::Menu {
+                println!("return from menu loop, state={:?}", result.state);
                 return result.state;
             }
-
-            macroquad::window::next_frame().await;
         }
     }
 
@@ -88,20 +89,21 @@ impl<'s, 'd, 'm> App<'s> {
         let mut game: Game = self.make_game(dictionary);
         println!("{}", game.get_correct_word());
 
+        let mut game_over_menu = App::make_game_over_menu();
+
         loop {
-            let application_state = {
-                match game.get_game_state() {
-                    GameState::Ongoing(_) => self.run_game_frame(&mut game),
-                    GameState::Win(_) => self.run_win_frame(&mut game),
-                    GameState::Lose => self.run_loss_frame(&mut game),
-                }
+            let app_state: ApplicationState = match game.get_game_state() {
+                GameState::Ongoing(_) => self.run_game_frame(&mut game),
+                GameState::Win(_) => self.run_win_frame(&mut game, &mut game_over_menu),
+                GameState::Lose => self.run_loss_frame(&mut game, &mut game_over_menu),
             };
 
-            if application_state != ApplicationState::Game {
-                return application_state;
-            }
-
             macroquad::window::next_frame().await;
+
+            if app_state != ApplicationState::Game {
+                while get_char_pressed().is_some() {}
+                return app_state;
+            }
         }
     }
 
@@ -166,6 +168,26 @@ impl<'s, 'd, 'm> App<'s> {
         Game::new(self.settings.attempts, dictionary)
     }
 
+    fn make_game_over_menu() -> Menu<'n, ApplicationState> {
+        let callback = |position: &mut u32, data: &mut ApplicationState| {
+            if is_key_pressed(KeyCode::Enter) {
+                match *position {
+                    0 => *data = ApplicationState::NewGame,
+                    1 => *data = ApplicationState::Menu,
+                    _ => {}
+                }
+            } else if is_key_pressed(KeyCode::Escape) {
+                *data = ApplicationState::Quit;
+            }
+        };
+
+        Menu::new(
+            Vec::from(["NEW GAME".to_string(), "MENU".to_string()]),
+            ApplicationState::Game,
+            callback,
+        )
+    }
+
     fn run_game_frame(&mut self, game: &mut Game) -> ApplicationState {
         assert!(matches!(game.get_game_state(), GameState::Ongoing { .. }));
 
@@ -224,49 +246,29 @@ impl<'s, 'd, 'm> App<'s> {
         InputResult::Incomplete
     }
 
-    fn run_win_frame(&self, game: &mut Game) -> ApplicationState {
-        if is_key_pressed(KeyCode::M) {
-            get_char_pressed();
-            return ApplicationState::Menu;
-        }
-
-        if is_key_pressed(KeyCode::N) {
-            get_char_pressed();
-            return ApplicationState::NewGame;
-        }
-
-        if is_key_pressed(KeyCode::Escape) {
-            get_char_pressed();
-            return ApplicationState::Quit;
-        }
-
-        self.gui
+    fn run_win_frame(
+        &mut self,
+        game: &mut Game,
+        menu: &mut Menu<ApplicationState>,
+    ) -> ApplicationState {
+        let y_start: f32 = self
+            .gui
             .draw_win(self.settings.word_length, game.get_guesses());
 
-        ApplicationState::Game
+        menu.run(y_start, &mut self.gui)
     }
 
-    fn run_loss_frame(&self, game: &mut Game) -> ApplicationState {
-        if is_key_pressed(KeyCode::M) {
-            get_char_pressed();
-            return ApplicationState::Menu;
-        }
-
-        if is_key_pressed(KeyCode::N) {
-            get_char_pressed();
-            return ApplicationState::NewGame;
-        }
-
-        if is_key_pressed(KeyCode::Escape) {
-            return ApplicationState::Quit;
-        }
-
-        self.gui.draw_loss(
+    fn run_loss_frame(
+        &mut self,
+        game: &mut Game,
+        menu: &mut Menu<ApplicationState>,
+    ) -> ApplicationState {
+        let y_start: f32 = self.gui.draw_loss(
             self.settings.word_length,
             game.get_guesses(),
             &game.get_correct_word(),
         );
 
-        ApplicationState::Game
+        menu.run(y_start, &mut self.gui)
     }
 }
