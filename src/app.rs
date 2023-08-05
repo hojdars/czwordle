@@ -79,7 +79,6 @@ impl<'s, 'd, 'm, 'n> App<'s> {
             macroquad::window::next_frame().await;
 
             if result.state != ApplicationState::Menu {
-                println!("return from menu loop, state={:?}", result.state);
                 return result.state;
             }
         }
